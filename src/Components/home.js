@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Button, CircularProgress, Typography, Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Select, MenuItem, InputLabel, FormControl } from '@mui/material';
+import { Button, CircularProgress, Typography, Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Select, MenuItem, InputLabel, FormControl, TextField } from '@mui/material';
 import { CloudUpload as CloudUploadIcon } from '@mui/icons-material';
 import axios from 'axios';
+import * as XLSX from 'xlsx';
 
 const Home = () => {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -60,7 +61,39 @@ const Home = () => {
     }
   };
 
-  const renderTable = (data, title) => {
+  const handleInputChange = (e, rowIndex, columnName) => {
+    const updatedPlanData = [...planData];
+    const newValue = e.target.value ? parseFloat(e.target.value) : 0;
+
+    updatedPlanData[rowIndex][columnName] = newValue;
+
+    // Update Total width column
+    updatedPlanData[rowIndex]['Total width'] = Object.keys(updatedPlanData[rowIndex])
+      .filter(key => key >= 0 && key <= 11)
+      .reduce((sum, key) => sum + (parseFloat(updatedPlanData[rowIndex][key]) || 0), 0);
+
+    setPlanData(updatedPlanData);
+  };
+
+  const downloadExcel = (data, filename) => {
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+    XLSX.writeFile(workbook, `${filename}.xlsx`);
+  };
+
+  const renderEditableCell = (rowIndex, columnName, value) => (
+    <TextField
+      value={value}
+      onChange={(e) => handleInputChange(e, rowIndex, columnName)}
+      type="number"
+      variant="outlined"
+      size="small"
+      inputProps={{ style: { width: '80px' } }} // Adjust the width as needed
+    />
+  );
+
+  const renderTable = (data, title, isEditable) => {
     if (!data || data.length === 0) {
       return null;
     }
@@ -78,16 +111,28 @@ const Home = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {data.map((row, index) => (
-                <TableRow key={index}>
-                  {Object.values(row).map((cellValue, cellIndex) => (
-                    <TableCell key={cellIndex}>{cellValue}</TableCell>
+              {data.map((row, rowIndex) => (
+                <TableRow key={rowIndex}>
+                  {Object.keys(row).map((column, cellIndex) => (
+                    <TableCell key={cellIndex}>
+                      {isEditable && column >= 0 && column <= 11
+                        ? renderEditableCell(rowIndex, column, row[column])
+                        : row[column]}
+                    </TableCell>
                   ))}
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </TableContainer>
+        <Button
+          variant="contained"
+          color="secondary"
+          onClick={() => downloadExcel(data, title.replace(' ', '_'))}
+          style={{ marginTop: '10px' }}
+        >
+          Download {title} as Excel
+        </Button>
       </div>
     );
   };
@@ -143,8 +188,8 @@ const Home = () => {
           {fetching ? 'Fetching...' : 'Fetch Data'}
         </Button>
       </div>
-      {renderTable(planData, "Plan Data")}
-      {renderTable(customerData, "Customer Data")}
+      {renderTable(planData, "Plan Data", true)}
+      {renderTable(customerData, "Customer Data", false)}
     </div>
   );
 };
