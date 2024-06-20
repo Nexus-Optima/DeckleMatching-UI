@@ -8,14 +8,43 @@ const Home = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState(null);
+  const [originalData, setOriginalData] = useState([]);
   const [customerData, setCustomerData] = useState([]);
   const [planData, setPlanData] = useState([]);
   const [fetching, setFetching] = useState(false);
   const [algorithm, setAlgorithm] = useState('');
 
   const handleFileChange = (event) => {
-    setSelectedFile(event.target.files[0]);
+    const file = event.target.files[0];
+    setSelectedFile(file);
     setMessage(null);
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 });
+
+      const headers = worksheet[0];
+      const rows = worksheet.slice(1).map((row) => {
+        const rowData = {};
+        headers.forEach((header, index) => {
+          rowData[header] = row[index];
+        });
+        rowData['Option'] = ''; // Add default value for the new column
+        return rowData;
+      });
+
+      setOriginalData(rows);
+    };
+    reader.readAsArrayBuffer(file);
+  };
+
+  const handleDropdownChange = (e, rowIndex) => {
+    const updatedData = [...originalData];
+    updatedData[rowIndex]['Option'] = e.target.value;
+    setOriginalData(updatedData);
   };
 
   const handleUpload = async () => {
@@ -23,8 +52,14 @@ const Home = () => {
 
     setUploading(true);
 
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(originalData);
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+    const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+
     const formData = new FormData();
-    formData.append('file', selectedFile);
+    formData.append('file', new Blob([wbout], { type: 'application/octet-stream' }), selectedFile.name);
+
     try {
       await axios.post(`${process.env.REACT_APP_API_DOMAIN}/api/upload`, formData, {
         headers: {
@@ -101,8 +136,8 @@ const Home = () => {
     return (
       <div>
         <Typography variant="h6" style={{ marginTop: '20px' }}>{title}</Typography>
-        <TableContainer component={Paper} style={{ marginTop: '10px' }}>
-          <Table>
+        <TableContainer component={Paper} style={{ marginTop: '10px', maxHeight: '700px', overflowY: 'auto' }}>
+          <Table stickyHeader>
             <TableHead>
               <TableRow>
                 {Object.keys(data[0]).map((column) => (
@@ -117,7 +152,20 @@ const Home = () => {
                     <TableCell key={cellIndex}>
                       {isEditable && column >= 0 && column <= 11
                         ? renderEditableCell(rowIndex, column, row[column])
-                        : row[column]}
+                        : column === 'Option' ? (
+                          <Select
+                            value={row[column]}
+                            onChange={(e) => handleDropdownChange(e, rowIndex)}
+                            variant="outlined"
+                            size="small"
+                            fullWidth
+                          >
+                            <MenuItem value="MustMake">Must Make</MenuItem>
+                            <MenuItem value="Optional">Optional</MenuItem>
+                          </Select>
+                        ) : (
+                          row[column]
+                        )}
                     </TableCell>
                   ))}
                 </TableRow>
@@ -125,14 +173,26 @@ const Home = () => {
             </TableBody>
           </Table>
         </TableContainer>
-        <Button
-          variant="contained"
-          color="secondary"
-          onClick={() => downloadExcel(data, title.replace(' ', '_'))}
-          style={{ marginTop: '10px' }}
-        >
-          Download {title} as Excel
-        </Button>
+        {title === "Original File" && (
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={handleUpload}
+            style={{ marginTop: '10px' }}
+          >
+            Upload Modified File
+          </Button>
+        )}
+        {title !== "Original File" && (
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={() => downloadExcel(data, title.replace(' ', '_'))}
+            style={{ marginTop: '10px' }}
+          >
+            Download {title} as Excel
+          </Button>
+        )}
       </div>
     );
   };
@@ -151,16 +211,7 @@ const Home = () => {
           Select File
         </Button>
       </label>
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={handleUpload}
-        disabled={!selectedFile || uploading}
-        startIcon={uploading ? <CircularProgress size={24} /> : <CloudUploadIcon />}
-        style={{ marginLeft: '10px' }}
-      >
-        {uploading ? 'Uploading...' : 'Upload'}
-      </Button>
+      {selectedFile && renderTable(originalData, "Original File", false)}
       {message && (
         <div style={{ marginTop: '20px' }}>
           <Alert severity={message.type}>{message.text}</Alert>
