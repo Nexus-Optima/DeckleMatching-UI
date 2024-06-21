@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
-import { Button, CircularProgress, Typography, Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Select, MenuItem, InputLabel, FormControl, TextField } from '@mui/material';
+import {
+  Button, CircularProgress, Typography, Alert, Table, TableBody, TableCell, TableContainer,
+  TableHead, TableRow, Paper, Select, MenuItem, InputLabel, FormControl, TextField, Tabs, Tab, Box
+} from '@mui/material';
 import { CloudUpload as CloudUploadIcon } from '@mui/icons-material';
 import axios from 'axios';
 import * as XLSX from 'xlsx';
+import Header from '../Header/header'
 
 const Home = () => {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -13,6 +17,8 @@ const Home = () => {
   const [planData, setPlanData] = useState([]);
   const [fetching, setFetching] = useState(false);
   const [algorithm, setAlgorithm] = useState('');
+  const [dataFetched, setDataFetched] = useState(false);
+  const [tabValue, setTabValue] = useState(0);
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
@@ -37,6 +43,7 @@ const Home = () => {
       });
 
       setOriginalData(rows);
+      setDataFetched(false); // Reset data fetched status
     };
     reader.readAsArrayBuffer(file);
   };
@@ -89,6 +96,7 @@ const Home = () => {
       setCustomerData(response.data.customer);
       setPlanData(response.data.plan);
       setMessage(null);
+      setDataFetched(true); // Mark data as fetched
     } catch (error) {
       setMessage({ type: 'error', text: 'Error fetching data. Please try again.' });
     } finally {
@@ -121,10 +129,10 @@ const Home = () => {
     <TextField
       value={value}
       onChange={(e) => handleInputChange(e, rowIndex, columnName)}
-      type="number"
+      type="text"
       variant="outlined"
       size="small"
-      inputProps={{ style: { width: '80px' } }} // Adjust the width as needed
+      inputProps={{ style: { width: '40px' } }} // Adjust the width as needed
     />
   );
 
@@ -136,7 +144,7 @@ const Home = () => {
     return (
       <div>
         <Typography variant="h6" style={{ marginTop: '20px' }}>{title}</Typography>
-        <TableContainer component={Paper} style={{ marginTop: '10px', maxHeight: '700px', overflowY: 'auto' }}>
+        <TableContainer component={Paper} style={{ marginTop: '10px', maxHeight: '500px', overflowY: 'auto' }}>
           <Table stickyHeader>
             <TableHead>
               <TableRow>
@@ -197,52 +205,96 @@ const Home = () => {
     );
   };
 
+  const handleChangeTab = (event, newValue) => {
+    setTabValue(newValue);
+  };
+
   return (
-    <div>
-      <input
-        accept=".xlsx, .xls"
-        style={{ display: 'none' }}
-        id="contained-button-file"
-        type="file"
-        onChange={handleFileChange}
-      />
-      <label htmlFor="contained-button-file">
-        <Button variant="contained" component="span" startIcon={<CloudUploadIcon />}>
-          Select File
-        </Button>
-      </label>
-      {selectedFile && renderTable(originalData, "Original File", false)}
-      {message && (
+    <>
+      <Header />
+      <div>
+        <input
+          accept=".xlsx, .xls"
+          style={{ display: 'none' }}
+          id="contained-button-file"
+          type="file"
+          onChange={handleFileChange}
+        />
+        <label htmlFor="contained-button-file">
+          <Button variant="contained" component="span" startIcon={<CloudUploadIcon />}>
+            Select File
+          </Button>
+        </label>
+        {selectedFile && (
+          <Typography variant="body1" style={{ display: 'inline', marginLeft: '10px' }}>
+            {selectedFile.name}
+          </Typography>
+        )}
+        {!dataFetched && selectedFile && renderTable(originalData, "Original File", false)}
+        {message && (
+          <div style={{ marginTop: '20px' }}>
+            <Alert severity={message.type}>{message.text}</Alert>
+          </div>
+        )}
         <div style={{ marginTop: '20px' }}>
-          <Alert severity={message.type}>{message.text}</Alert>
-        </div>
-      )}
-      <div style={{ marginTop: '20px' }}>
-        <FormControl variant="outlined" style={{ marginRight: '10px', minWidth: 200 }}>
-          <InputLabel>Algorithm</InputLabel>
-          <Select
-            value={algorithm}
-            onChange={(e) => setAlgorithm(e.target.value)}
-            label="Algorithm"
+          <FormControl variant="outlined" style={{ marginRight: '10px', minWidth: 200 }}>
+            <InputLabel>Algorithm</InputLabel>
+            <Select
+              value={algorithm}
+              onChange={(e) => setAlgorithm(e.target.value)}
+              label="Algorithm"
+            >
+              <MenuItem value="knives">Knives</MenuItem>
+              <MenuItem value="wastage">Wastage</MenuItem>
+            </Select>
+          </FormControl>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={fetchData}
+            disabled={fetching}
+            startIcon={fetching ? <CircularProgress size={24} /> : null}
           >
-            <MenuItem value="knives">Knives</MenuItem>
-            <MenuItem value="wastage">Wastage</MenuItem>
-          </Select>
-        </FormControl>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={fetchData}
-          disabled={fetching}
-          startIcon={fetching ? <CircularProgress size={24} /> : null}
-        >
-          {fetching ? 'Fetching...' : 'Fetch Data'}
-        </Button>
+            {fetching ? 'Fetching...' : 'Fetch Data'}
+          </Button>
+        </div>
+        {dataFetched && (
+          <Box sx={{ width: '100%', marginTop: '20px' }}>
+            <Tabs value={tabValue} onChange={handleChangeTab} aria-label="plan and customer data tabs">
+              <Tab label="Plan Data" />
+              <Tab label="Customer Data" />
+            </Tabs>
+            <TabPanel value={tabValue} index={0}>
+              {renderTable(planData, "Plan Data", true)}
+            </TabPanel>
+            <TabPanel value={tabValue} index={1}>
+              {renderTable(customerData, "Customer Data", false)}
+            </TabPanel>
+          </Box>
+        )}
       </div>
-      {renderTable(planData, "Plan Data", true)}
-      {renderTable(customerData, "Customer Data", false)}
-    </div>
+    </>
   );
 };
+
+function TabPanel(props) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`tabpanel-${index}`}
+      aria-labelledby={`tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box sx={{ p: 3 }}>
+          <Typography>{children}</Typography>
+        </Box>
+      )}
+    </div>
+  );
+}
 
 export default Home;
