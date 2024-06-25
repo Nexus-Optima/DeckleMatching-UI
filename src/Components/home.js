@@ -19,7 +19,9 @@ const Home = () => {
   const [fetching, setFetching] = useState(false);
   const [algorithm, setAlgorithm] = useState('');
   const [productName, setProductName] = useState('');
+  const [productTypes, setProductTypes] = useState([]);
   const [productConfig, setProductConfig] = useState('');
+  const [productConfigInput, setProductConfigInput] = useState([]);
   const [dataFetched, setDataFetched] = useState(false);
   const [tabValue, setTabValue] = useState(0);
 
@@ -53,6 +55,8 @@ const Home = () => {
       }
 
     };
+    reader.readAsArrayBuffer(file);
+  };
 
   const handleDropdownChange = (e, rowIndex) => {
     const updatedData = [...originalData];
@@ -75,7 +79,10 @@ const Home = () => {
       const response = await axios.post(`${process.env.REACT_APP_API_DOMAIN}/api/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      console.log(response)
+      const types = response.data.product_type;
+      setProductTypes(types);
+      const productConfigInput = response.data.product_config;
+      setProductConfigInput(productConfigInput);
       setMessage({ type: 'success', text: 'File uploaded successfully!' });
     } catch (error) {
       setMessage({ type: 'error', text: 'Error uploading file. Please try again.' });
@@ -93,7 +100,7 @@ const Home = () => {
     setFetching(true);
     try {
       const response = await axios.get(`${process.env.REACT_APP_API_DOMAIN}/api/fetch_plan_data`, {
-        params: { algorithm, product_name: productName, product_config: productConfig }
+        params: { algorithm, product_name: productName, product_config: productConfig, client_name: 'CPFL' }
       });
 
       setCustomerData(response.data.customer);
@@ -254,8 +261,9 @@ const Home = () => {
               onChange={(e) => setProductName(e.target.value)}
               label="Product Name"
             >
-              <MenuItem value="Product1">Product1</MenuItem>
-              <MenuItem value="Product2">Product2</MenuItem>
+            {productTypes.map((type, index) => (
+              <MenuItem key={index} value={type}>{type}</MenuItem>
+            ))}
             </Select>
           </FormControl>
           <FormControl variant="outlined" style={{ marginRight: '10px', minWidth: 200 }}>
@@ -265,8 +273,11 @@ const Home = () => {
               onChange={(e) => setProductConfig(e.target.value)}
               label="Product Config"
             >
-              <MenuItem value="Config1">Config1</MenuItem>
-              <MenuItem value="Config2">Config2</MenuItem>
+              {productConfigInput.map((config, index) => (
+              <MenuItem key={index} value={config}>
+                {config}
+              </MenuItem>
+               ))}
             </Select>
           </FormControl>
           <Button
