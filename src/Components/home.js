@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import {
+import { ThemeProvider,
   Button, CircularProgress, Typography, Alert, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Paper, Select, MenuItem, InputLabel, FormControl, TextField, Tabs, Tab, Box
 } from '@mui/material';
@@ -7,6 +7,7 @@ import { CloudUpload as CloudUploadIcon } from '@mui/icons-material';
 import axios from 'axios';
 import * as XLSX from 'xlsx';
 import Header from '../Header/header'
+import theme  from '../Themes/themes';
 
 const Home = () => {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -142,6 +143,7 @@ const Home = () => {
     }
 
     return (
+      <ThemeProvider theme={theme} >
       <div>
         <Typography variant="h6" style={{ marginTop: '20px' }}>{title}</Typography>
         <TableContainer component={Paper} style={{ marginTop: '10px', maxHeight: '500px', overflowY: 'auto' }}>
@@ -202,6 +204,7 @@ const Home = () => {
           </Button>
         )}
       </div>
+      </ThemeProvider>
     );
   };
 
@@ -210,6 +213,7 @@ const Home = () => {
   };
 
   return (
+    <ThemeProvider theme={theme}>
     <>
       <Header />
       <div>
@@ -274,6 +278,7 @@ const Home = () => {
         )}
       </div>
     </>
+    </ThemeProvider>
   );
 };
 
