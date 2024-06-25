@@ -23,6 +23,7 @@ const Home = () => {
   const [dataFetched, setDataFetched] = useState(false);
   const [tabValue, setTabValue] = useState(0);
 
+
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     setSelectedFile(file);
@@ -50,9 +51,8 @@ const Home = () => {
       } else {
         setMessage(`Sheet "${targetSheetName}" not found in the Excel file.`);
       }
+
     };
-    reader.readAsArrayBuffer(file);
-  };
 
   const handleDropdownChange = (e, rowIndex) => {
     const updatedData = [...originalData];
