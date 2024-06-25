@@ -20,33 +20,48 @@ const Home = () => {
   const [dataFetched, setDataFetched] = useState(false);
   const [tabValue, setTabValue] = useState(0);
 
-  const handleFileChange = (event) => {
-    const file = event.target.files[0];
-    setSelectedFile(file);
-    setMessage(null);
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, { type: 'array' });
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 });
-
-      const headers = worksheet[0];
-      const rows = worksheet.slice(1).map((row) => {
-        const rowData = {};
-        headers.forEach((header, index) => {
-          rowData[header] = row[index];
-        });
-        rowData['Option'] = ''; // Add default value for the new column
-        return rowData;
-      });
-
-      setOriginalData(rows);
-      setDataFetched(false); // Reset data fetched status
+    const handleFileChange = (event) => {
+      const file = event.target.files[0];
+      setSelectedFile(file);
+      setMessage(null);
+    
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        
+        // Specify the sheet name you want to read
+        const targetSheetName = 'pending';
+    
+        // Check if the sheet exists
+        if (workbook.SheetNames.includes(targetSheetName)) {
+          // Read the specific sheet
+          const worksheet = XLSX.utils.sheet_to_json(workbook.Sheets[targetSheetName], { header: 1 });
+    
+          // Extract headers
+          const headers = worksheet[0];
+    
+          // Process rows and add a new column "Option" with default value
+          const rows = worksheet.slice(1).map((row) => {
+            const rowData = {};
+            headers.forEach((header, index) => {
+              rowData[header] = row[index];
+            });
+            rowData['Option'] = 'Optional'; // Add default value for the new column
+            return rowData;
+          });
+    
+          // Set the processed data to state
+          setOriginalData(rows);
+          setDataFetched(false); // Reset data fetched status
+        } else {
+          // If the sheet does not exist, display a message
+          setMessage(`Sheet "${targetSheetName}" not found in the Excel file.`);
+        }
+      };
+      reader.readAsArrayBuffer(file);
     };
-    reader.readAsArrayBuffer(file);
-  };
 
   const handleDropdownChange = (e, rowIndex) => {
     const updatedData = [...originalData];
