@@ -18,51 +18,41 @@ const Home = () => {
   const [planData, setPlanData] = useState([]);
   const [fetching, setFetching] = useState(false);
   const [algorithm, setAlgorithm] = useState('');
+  const [productName, setProductName] = useState('');
+  const [productConfig, setProductConfig] = useState('');
   const [dataFetched, setDataFetched] = useState(false);
   const [tabValue, setTabValue] = useState(0);
 
-
-    const handleFileChange = (event) => {
-      const file = event.target.files[0];
-      setSelectedFile(file);
-      setMessage(null);
-    
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
-        
-        // Specify the sheet name you want to read
-        const targetSheetName = 'pending';
-    
-        // Check if the sheet exists
-        if (workbook.SheetNames.includes(targetSheetName)) {
-          // Read the specific sheet
-          const worksheet = XLSX.utils.sheet_to_json(workbook.Sheets[targetSheetName], { header: 1 });
-    
-          // Extract headers
-          const headers = worksheet[0];
-    
-          // Process rows and add a new column "Option" with default value
-          const rows = worksheet.slice(1).map((row) => {
-            const rowData = {};
-            headers.forEach((header, index) => {
-              rowData[header] = row[index];
-            });
-            rowData['Option'] = 'Optional'; // Add default value for the new column
-            return rowData;
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    setSelectedFile(file);
+    setMessage(null);
+  
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      
+      const targetSheetName = 'pending';
+      if (workbook.SheetNames.includes(targetSheetName)) {
+        const worksheet = XLSX.utils.sheet_to_json(workbook.Sheets[targetSheetName], { header: 1 });
+        const headers = worksheet[0];
+        const rows = worksheet.slice(1).map((row) => {
+          const rowData = {};
+          headers.forEach((header, index) => {
+            rowData[header] = row[index];
           });
-    
-          // Set the processed data to state
-          setOriginalData(rows);
-          setDataFetched(false); // Reset data fetched status
-        } else {
-          // If the sheet does not exist, display a message
-          setMessage(`Sheet "${targetSheetName}" not found in the Excel file.`);
-        }
-      };
-      reader.readAsArrayBuffer(file);
+          rowData['Option'] = 'Optional';
+          return rowData;
+        });
+        setOriginalData(rows);
+        setDataFetched(false);
+      } else {
+        setMessage(`Sheet "${targetSheetName}" not found in the Excel file.`);
+      }
     };
+    reader.readAsArrayBuffer(file);
+  };
 
   const handleDropdownChange = (e, rowIndex) => {
     const updatedData = [...originalData];
@@ -72,9 +62,7 @@ const Home = () => {
 
   const handleUpload = async () => {
     if (!selectedFile) return;
-
     setUploading(true);
-
     const workbook = XLSX.utils.book_new();
     const worksheet = XLSX.utils.json_to_sheet(originalData);
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
@@ -84,11 +72,10 @@ const Home = () => {
     formData.append('file', new Blob([wbout], { type: 'application/octet-stream' }), selectedFile.name);
 
     try {
-      await axios.post(`${process.env.REACT_APP_API_DOMAIN}/api/upload`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
+      const response = await axios.post(`${process.env.REACT_APP_API_DOMAIN}/api/upload`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
+      console.log(response)
       setMessage({ type: 'success', text: 'File uploaded successfully!' });
     } catch (error) {
       setMessage({ type: 'error', text: 'Error uploading file. Please try again.' });
@@ -106,13 +93,13 @@ const Home = () => {
     setFetching(true);
     try {
       const response = await axios.get(`${process.env.REACT_APP_API_DOMAIN}/api/fetch_plan_data`, {
-        params: { algorithm }
+        params: { algorithm, product_name: productName, product_config: productConfig }
       });
 
       setCustomerData(response.data.customer);
       setPlanData(response.data.plan);
       setMessage(null);
-      setDataFetched(true); // Mark data as fetched
+      setDataFetched(true);
     } catch (error) {
       setMessage({ type: 'error', text: 'Error fetching data. Please try again.' });
     } finally {
@@ -123,14 +110,10 @@ const Home = () => {
   const handleInputChange = (e, rowIndex, columnName) => {
     const updatedPlanData = [...planData];
     const newValue = e.target.value ? parseFloat(e.target.value) : 0;
-
     updatedPlanData[rowIndex][columnName] = newValue;
-
-    // Update Total width column
     updatedPlanData[rowIndex]['Total width'] = Object.keys(updatedPlanData[rowIndex])
       .filter(key => key >= 0 && key <= 11)
       .reduce((sum, key) => sum + (parseFloat(updatedPlanData[rowIndex][key]) || 0), 0);
-
     setPlanData(updatedPlanData);
   };
 
@@ -148,15 +131,12 @@ const Home = () => {
       type="text"
       variant="outlined"
       size="small"
-      inputProps={{ style: { width: '40px' } }} // Adjust the width as needed
+      inputProps={{ style: { width: '40px' } }}
     />
   );
 
   const renderTable = (data, title, isEditable) => {
-    if (!data || data.length === 0) {
-      return null;
-    }
-
+    if (!data || data.length === 0) return null;
     return (
       <ThemeProvider theme={theme} >
       <div>
@@ -265,6 +245,28 @@ const Home = () => {
             >
               <MenuItem value="knives">Knives</MenuItem>
               <MenuItem value="wastage">Wastage</MenuItem>
+            </Select>
+          </FormControl>
+          <FormControl variant="outlined" style={{ marginRight: '10px', minWidth: 200 }}>
+            <InputLabel>Product Name</InputLabel>
+            <Select
+              value={productName}
+              onChange={(e) => setProductName(e.target.value)}
+              label="Product Name"
+            >
+              <MenuItem value="Product1">Product1</MenuItem>
+              <MenuItem value="Product2">Product2</MenuItem>
+            </Select>
+          </FormControl>
+          <FormControl variant="outlined" style={{ marginRight: '10px', minWidth: 200 }}>
+            <InputLabel>Product Config</InputLabel>
+            <Select
+              value={productConfig}
+              onChange={(e) => setProductConfig(e.target.value)}
+              label="Product Config"
+            >
+              <MenuItem value="Config1">Config1</MenuItem>
+              <MenuItem value="Config2">Config2</MenuItem>
             </Select>
           </FormControl>
           <Button
