@@ -79,9 +79,9 @@ const Home = () => {
       const response = await axios.post(`${process.env.REACT_APP_API_DOMAIN}/api/upload`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      const types = response.data.product_type;
+      const types = response.data.data.product_type;
       setProductTypes(types);
-      const productConfigInput = response.data.product_config;
+      const productConfigInput = response.data.data.product_config;
       setProductConfigInput(productConfigInput);
       setMessage({ type: 'success', text: 'File uploaded successfully!' });
     } catch (error) {
