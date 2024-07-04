@@ -101,6 +101,7 @@ const Home = () => {
       const response = await axios.get(`${process.env.REACT_APP_API_DOMAIN}/api/fetch_plan_data`, {
         params: { algorithm, product_name: productName, product_config: productConfig, client_name: 'CPFL' }
       });
+
       setCustomerData(response.data.customer);
       setPlanData(response.data.plan);
       setMetricData(response.data.metric)
