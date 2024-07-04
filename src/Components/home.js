@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
-import { ThemeProvider,
-  Button, CircularProgress, Typography, Alert, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, Paper, Select, MenuItem, InputLabel, FormControl, TextField, Tabs, Tab, Box
+import { ThemeProvider, Button, CircularProgress, Typography, Alert, Table, TableBody, TableCell, TableContainer,
+  TableHead, TableRow, Paper, Select, MenuItem, InputLabel, FormControl, TextField, Tabs, Tab, Box, Drawer, List, ListItem, ListItemText, Container
 } from '@mui/material';
 import { CloudUpload as CloudUploadIcon } from '@mui/icons-material';
 import axios from 'axios';
 import * as XLSX from 'xlsx';
-import Header from '../Header/header'
-import theme  from '../Themes/themes';
+import Header from '../Header/header';
+import theme from '../Themes/themes';
 
 const Home = () => {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -24,18 +23,18 @@ const Home = () => {
   const [productConfigInput, setProductConfigInput] = useState([]);
   const [dataFetched, setDataFetched] = useState(false);
   const [tabValue, setTabValue] = useState(0);
-
+  const [selectedOption, setSelectedOption] = useState('input');
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     setSelectedFile(file);
     setMessage(null);
-  
+
     const reader = new FileReader();
     reader.onload = (e) => {
       const data = new Uint8Array(e.target.result);
       const workbook = XLSX.read(data, { type: 'array' });
-      
+
       const targetSheetName = 'pending';
       if (workbook.SheetNames.includes(targetSheetName)) {
         const worksheet = XLSX.utils.sheet_to_json(workbook.Sheets[targetSheetName], { header: 1 });
@@ -53,7 +52,6 @@ const Home = () => {
       } else {
         setMessage(`Sheet "${targetSheetName}" not found in the Excel file.`);
       }
-
     };
     reader.readAsArrayBuffer(file);
   };
@@ -92,8 +90,8 @@ const Home = () => {
   };
 
   const fetchData = async () => {
-    if (!algorithm) {
-      setMessage({ type: 'error', text: 'Please select an algorithm' });
+    if (!algorithm || !productName || !productConfig) {
+      setMessage({ type: 'error', text: 'Please select an algorithm, product name, and product config' });
       return;
     }
 
@@ -145,67 +143,67 @@ const Home = () => {
   const renderTable = (data, title, isEditable) => {
     if (!data || data.length === 0) return null;
     return (
-      <ThemeProvider theme={theme} >
-      <div>
-        <Typography variant="h6" style={{ marginTop: '20px' }}>{title}</Typography>
-        <TableContainer component={Paper} style={{ marginTop: '10px', maxHeight: '500px', overflowY: 'auto' }}>
-          <Table stickyHeader>
-            <TableHead>
-              <TableRow>
-                {Object.keys(data[0]).map((column) => (
-                  <TableCell key={column}>{column}</TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {data.map((row, rowIndex) => (
-                <TableRow key={rowIndex}>
-                  {Object.keys(row).map((column, cellIndex) => (
-                    <TableCell key={cellIndex}>
-                      {isEditable && column >= 0 && column <= 11
-                        ? renderEditableCell(rowIndex, column, row[column])
-                        : column === 'Option' ? (
-                          <Select
-                            value={row[column]}
-                            onChange={(e) => handleDropdownChange(e, rowIndex)}
-                            variant="outlined"
-                            size="small"
-                            fullWidth
-                          >
-                            <MenuItem value="MustMake">Must Make</MenuItem>
-                            <MenuItem value="Optional">Optional</MenuItem>
-                          </Select>
-                        ) : (
-                          row[column]
-                        )}
-                    </TableCell>
+      <ThemeProvider theme={theme}>
+        <div>
+          <Typography variant="h6" style={{}}>{title}</Typography>
+          <TableContainer component={Paper} style={{ marginTop: '1%', marginBottom: '1%', border: '1px solid #ccc', height:'55vh', width:'100%' }}>
+            <Table stickyHeader>
+              <TableHead>
+                <TableRow>
+                  {Object.keys(data[0]).map((column) => (
+                    <TableCell key={column} style={{ border: '1px solid #ccc', fontWeight: 'bold', background: 'black', color: 'white' }}>{column}</TableCell>
                   ))}
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        {title === "Original File" && (
-          <Button
-            variant="contained"
-            color="secondary"
-            onClick={handleUpload}
-            style={{ marginTop: '10px' }}
-          >
-            Upload Modified File
-          </Button>
-        )}
-        {title !== "Original File" && (
-          <Button
-            variant="contained"
-            color="secondary"
-            onClick={() => downloadExcel(data, title.replace(' ', '_'))}
-            style={{ marginTop: '10px' }}
-          >
-            Download {title} as Excel
-          </Button>
-        )}
-      </div>
+              </TableHead>
+              <TableBody>
+                {data.map((row, rowIndex) => (
+                  <TableRow key={rowIndex}>
+                    {Object.keys(row).map((column, cellIndex) => (
+                      <TableCell key={cellIndex} style={{ border: '1px solid #ccc' }}>
+                        {isEditable && column >= 0 && column <= 11
+                          ? renderEditableCell(rowIndex, column, row[column])
+                          : column === 'Option' ? (
+                            <Select
+                              value={row[column]}
+                              onChange={(e) => handleDropdownChange(e, rowIndex)}
+                              variant="outlined"
+                              size="small"
+                              fullWidth
+                            >
+                              <MenuItem value="MustMake">Must Make</MenuItem>
+                              <MenuItem value="Optional">Optional</MenuItem>
+                            </Select>
+                          ) : (
+                            row[column]
+                          )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          {title === "Original File" && (
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={handleUpload}
+              style={{ marginTop: '10px' }}
+            >
+              Upload Modified File
+            </Button>
+          )}
+          {title !== "Original File" && (
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={() => downloadExcel(data, title.replace(' ', '_'))}
+              style={{ marginTop: '10px' }}
+            >
+              Download {title} as Excel
+            </Button>
+          )}
+        </div>
       </ThemeProvider>
     );
   };
@@ -214,98 +212,124 @@ const Home = () => {
     setTabValue(newValue);
   };
 
-  return (
-    <ThemeProvider theme={theme}>
-    <>
-      <Header />
-      <div>
-        <input
-          accept=".xlsx, .xls"
-          style={{ display: 'none' }}
-          id="contained-button-file"
-          type="file"
-          onChange={handleFileChange}
-        />
-        <label htmlFor="contained-button-file">
-          <Button variant="contained" component="span" startIcon={<CloudUploadIcon />}>
-            Select File
-          </Button>
-        </label>
-        {selectedFile && (
-          <Typography variant="body1" style={{ display: 'inline', marginLeft: '10px' }}>
-            {selectedFile.name}
-          </Typography>
-        )}
-        {!dataFetched && selectedFile && renderTable(originalData, "Original File", false)}
-        {message && (
-          <div style={{ marginTop: '20px' }}>
-            <Alert severity={message.type}>{message.text}</Alert>
-          </div>
-        )}
+  const renderUploadSection = () => (
+    <div>
+      <input
+        accept=".xlsx, .xls"
+        style={{ display: 'none' }}
+        id="contained-button-file"
+        type="file"
+        onChange={handleFileChange}
+      />
+      <label htmlFor="contained-button-file">
+        <Button variant="contained" component="span" startIcon={<CloudUploadIcon />}>
+          Select File
+        </Button>
+      </label>
+      {selectedFile && (
+        <Typography variant="body1" style={{ display: 'inline', marginLeft: '10px' }}>
+          {selectedFile.name}
+        </Typography>
+      )}
+      {!dataFetched && selectedFile && renderTable(originalData, "Original File", false)}
+      {message && (
         <div style={{ marginTop: '20px' }}>
-          <FormControl variant="outlined" style={{ marginRight: '10px', minWidth: 200 }}>
-            <InputLabel>Algorithm</InputLabel>
-            <Select
-              value={algorithm}
-              onChange={(e) => setAlgorithm(e.target.value)}
-              label="Algorithm"
-            >
-              <MenuItem value="knives">Knives</MenuItem>
-              <MenuItem value="wastage">Wastage</MenuItem>
-            </Select>
-          </FormControl>
-          <FormControl variant="outlined" style={{ marginRight: '10px', minWidth: 200 }}>
-            <InputLabel>Product Name</InputLabel>
-            <Select
-              value={productName}
-              onChange={(e) => setProductName(e.target.value)}
-              label="Product Name"
-            >
+          <Alert severity={message.type}>{message.text}</Alert>
+        </div>
+      )}
+    </div>
+  );
+
+  const renderOutputSection = () => (
+    <div>
+      <div style={{}}>
+        <FormControl variant="outlined" style={{ marginRight: '10px', width: 300 }}>
+          <InputLabel>Algorithm</InputLabel>
+          <Select
+            value={algorithm}
+            onChange={(e) => setAlgorithm(e.target.value)}
+            label="Algorithm"
+          >
+            <MenuItem value="knives">Knives</MenuItem>
+            <MenuItem value="wastage">Wastage</MenuItem>
+          </Select>
+        </FormControl>
+        <FormControl variant="outlined" style={{ marginRight: '10px', minWidth: 300 }}>
+          <InputLabel>Product Name</InputLabel>
+          <Select
+            value={productName}
+            onChange={(e) => setProductName(e.target.value)}
+            label="Product Name"
+          >
             {productTypes.map((type, index) => (
               <MenuItem key={index} value={type}>{type}</MenuItem>
             ))}
-            </Select>
-          </FormControl>
-          <FormControl variant="outlined" style={{ marginRight: '10px', minWidth: 200 }}>
-            <InputLabel>Product Config</InputLabel>
-            <Select
-              value={productConfig}
-              onChange={(e) => setProductConfig(e.target.value)}
-              label="Product Config"
-            >
-              {productConfigInput.map((config, index) => (
-              <MenuItem key={index} value={config}>
-                {config}
-              </MenuItem>
-               ))}
-            </Select>
-          </FormControl>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={fetchData}
-            disabled={fetching}
-            startIcon={fetching ? <CircularProgress size={24} /> : null}
+          </Select>
+        </FormControl>
+        <FormControl variant="outlined" style={{ marginRight: '10px', minWidth: 300 }}>
+          <InputLabel>Product Config</InputLabel>
+          <Select
+            value={productConfig}
+            onChange={(e) => setProductConfig(e.target.value)}
+            label="Product Config"
           >
-            {fetching ? 'Fetching...' : 'Fetch Data'}
-          </Button>
-        </div>
-        {dataFetched && (
-          <Box sx={{ width: '100%', marginTop: '20px' }}>
-            <Tabs value={tabValue} onChange={handleChangeTab} aria-label="plan and customer data tabs">
-              <Tab label="Plan Data" />
-              <Tab label="Customer Data" />
-            </Tabs>
-            <TabPanel value={tabValue} index={0}>
-              {renderTable(planData, "Plan Data", true)}
-            </TabPanel>
-            <TabPanel value={tabValue} index={1}>
-              {renderTable(customerData, "Customer Data", false)}
-            </TabPanel>
-          </Box>
-        )}
+            {productConfigInput.map((config, index) => (
+              <MenuItem key={index} value={config}>{config}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={fetchData}
+          disabled={fetching}
+          style={{width:200}}
+          startIcon={fetching ? <CircularProgress size={24} /> : null}
+        >
+          {fetching ? 'Fetching...' : 'Fetch Data'}
+        </Button>
       </div>
-    </>
+      {dataFetched && (
+        <Box sx={{ }}>
+          <Tabs value={tabValue} onChange={handleChangeTab} aria-label="plan and customer data tabs">
+            <Tab label="Plan Data" />
+            <Tab label="Customer Data" />
+          </Tabs>
+          <TabPanel value={tabValue} index={0}>
+            {renderTable(planData, "Plan Data", true)}
+          </TabPanel>
+          <TabPanel value={tabValue} index={1}>
+            {renderTable(customerData, "Customer Data", false)}
+          </TabPanel>
+        </Box>
+      )}
+    </div>
+  );
+
+  return (
+    <ThemeProvider theme={theme}>
+      <>
+        <Header />
+        <div style={{ display: 'flex', }}>
+          <Drawer
+            variant="permanent"
+            open
+          >
+            <List>
+              <ListItem button onClick={() => setSelectedOption('input')}>
+                <ListItemText primary="Input" />
+              </ListItem>
+              <ListItem button onClick={() => setSelectedOption('output')}>
+                <ListItemText primary="Output" />
+              </ListItem>
+            </List>
+          </Drawer>
+          <Container style={{ flexGrow: 1, padding: '20px' }}>
+            {selectedOption === 'input' && renderUploadSection()}
+            {selectedOption === 'output' && renderOutputSection()}
+          </Container>
+        </div>
+      </>
     </ThemeProvider>
   );
 };
@@ -323,7 +347,7 @@ function TabPanel(props) {
     >
       {value === index && (
         <Box sx={{ p: 3 }}>
-          <Typography>{children}</Typography>
+          <Typography fontWeight='bold'>{children}</Typography>
         </Box>
       )}
     </div>
