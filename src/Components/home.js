@@ -15,6 +15,7 @@ const Home = () => {
   const [originalData, setOriginalData] = useState([]);
   const [customerData, setCustomerData] = useState([]);
   const [planData, setPlanData] = useState([]);
+  const [metricData, setMetricData] = useState([]);
   const [fetching, setFetching] = useState(false);
   const [algorithm, setAlgorithm] = useState('');
   const [productName, setProductName] = useState('');
@@ -103,6 +104,7 @@ const Home = () => {
 
       setCustomerData(response.data.customer);
       setPlanData(response.data.plan);
+      setMetricData(response.data.metric)
       setMessage(null);
       setDataFetched(true);
     } catch (error) {
@@ -128,7 +130,7 @@ const Home = () => {
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
     XLSX.writeFile(workbook, `${filename}.xlsx`);
   };
-
+  
   const renderEditableCell = (rowIndex, columnName, value) => (
     <TextField
       value={value}
@@ -136,7 +138,11 @@ const Home = () => {
       type="text"
       variant="outlined"
       size="small"
-      inputProps={{ style: { width: '40px' } }}
+      inputProps={{ style: { 
+        width: (value / 16) ,
+        fontSize: '14px', // Adjust the font size here
+        padding: 5, // Remove padding
+      } }}
     />
   );
 
@@ -158,8 +164,85 @@ const Home = () => {
               <TableBody>
                 {data.map((row, rowIndex) => (
                   <TableRow key={rowIndex}>
-                    {Object.keys(row).map((column, cellIndex) => (
-                      <TableCell key={cellIndex} style={{ border: '1px solid #ccc' }}>
+                    {Object.keys(row).map((column, cellIndex) => (  
+                      <TableCell key={cellIndex} style={{ 
+                        border: '1px solid #ccc',                       
+                        padding: 5, // Remove padding from TableCell
+                    }}>
+                        {isEditable && column >= 0 && column <= 11
+                          ? renderEditableCell(rowIndex, column, row[column])
+                          : column === 'Option' ? (
+                            <Select
+                              value={row[column]}
+                              onChange={(e) => handleDropdownChange(e, rowIndex)}
+                              variant="outlined"
+                              size="small"
+                              fullWidth
+                            >
+                              <MenuItem value="MustMake">Must Make</MenuItem>
+                              <MenuItem value="Optional">Optional</MenuItem>
+                            </Select>
+                          ) : (
+                            row[column]
+                          )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          {title === "Original File" && (
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={handleUpload}
+              style={{ marginTop: '10px' }}
+            >
+              Upload Modified File
+            </Button>
+          )}
+          {title !== "Original File" && (
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={() => downloadExcel(data, title.replace(' ', '_'))}
+              style={{ marginTop: '10px' }}
+            >
+              Download {title} as Excel
+            </Button>
+          )}
+        </div>
+      </ThemeProvider>
+    );
+  };
+
+  const renderPlanTable = (data, title, isEditable) => {
+    if (!data || data.length === 0) return null;
+    const additionalColumns = ['Total width', 'Trim', 'Sets']; // Add any additional specific columns here
+    const numericalColumns = Object.keys(data[0]).filter(key => /^\d+$/.test(key)); // Selects columns with only numbers
+    const columnsToShow = [...additionalColumns, ...numericalColumns];
+    return (
+      <ThemeProvider theme={theme}>
+        <div>
+          <Typography variant="h6" style={{}}>{title}</Typography>
+          <TableContainer component={Paper} style={{ marginTop: '1%', marginBottom: '1%', border: '1px solid #ccc', height:'55vh', width:'100%' }}>
+            <Table stickyHeader>
+              <TableHead>
+                <TableRow>
+                  {columnsToShow.map((column) => (
+                    <TableCell key={column} style={{ border: '1px solid #ccc', fontWeight: 'bold', background: 'black', color: 'white' }}>{column}</TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {data.map((row, rowIndex) => (
+                  <TableRow key={rowIndex}>
+                    {columnsToShow.map((column, cellIndex) => (
+                    <TableCell key={cellIndex} style={{ 
+                      border: '1px solid #ccc',                       
+                      padding: 5, // Remove padding from TableCell
+                    }}>
                         {isEditable && column >= 0 && column <= 11
                           ? renderEditableCell(rowIndex, column, row[column])
                           : column === 'Option' ? (
@@ -292,13 +375,18 @@ const Home = () => {
       {dataFetched && (
         <Box sx={{ }}>
           <Tabs value={tabValue} onChange={handleChangeTab} aria-label="plan and customer data tabs">
+            <Tab label="Metric Data" />
             <Tab label="Plan Data" />
             <Tab label="Customer Data" />
           </Tabs>
           <TabPanel value={tabValue} index={0}>
-            {renderTable(planData, "Plan Data", true)}
+            {renderTable(metricData, "Metric Data", false)}
           </TabPanel>
           <TabPanel value={tabValue} index={1}>
+          {renderPlanTable(planData, "Plan Data", true)}
+          {/* {planData.map((row, index) => renderPlanTable(row, `Plan Data Row ${index + 1}`, true))} */}
+          </TabPanel>
+          <TabPanel value={tabValue} index={2}>
             {renderTable(customerData, "Customer Data", false)}
           </TabPanel>
         </Box>
