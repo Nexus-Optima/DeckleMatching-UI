@@ -1,12 +1,37 @@
-import React, { useState } from 'react';
-import { ThemeProvider, Button, CircularProgress, Typography, Alert, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, Paper, Select, MenuItem, InputLabel, FormControl, TextField, Tabs, Tab, Box, Drawer, List, ListItem, ListItemText, Container
-} from '@mui/material';
-import { CloudUpload as CloudUploadIcon } from '@mui/icons-material';
-import axios from 'axios';
-import * as XLSX from 'xlsx';
-import Header from '../Header/header';
-import theme from '../Themes/themes';
+import React, { useState } from "react";
+import {
+  ThemeProvider,
+  Button,
+  CircularProgress,
+  Typography,
+  Alert,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
+  TextField,
+  Tabs,
+  Tab,
+  Box,
+  Drawer,
+  List,
+  ListItem,
+  Container,
+} from "@mui/material";
+import { CloudUpload as CloudUploadIcon } from "@mui/icons-material";
+import axios from "axios";
+import * as XLSX from "xlsx";
+import Header from "../Header/header";
+import theme from "../Themes/themes";
+import FileUploadIcon from "@mui/icons-material/FileUpload";
+import OutputIcon from "@mui/icons-material/Output";
 
 const Home = () => {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -17,14 +42,15 @@ const Home = () => {
   const [planData, setPlanData] = useState([]);
   const [metricData, setMetricData] = useState([]);
   const [fetching, setFetching] = useState(false);
-  const [algorithm, setAlgorithm] = useState('');
-  const [productName, setProductName] = useState('');
+  const [algorithm, setAlgorithm] = useState("");
+  const [productName, setProductName] = useState("");
   const [productTypes, setProductTypes] = useState([]);
-  const [productConfig, setProductConfig] = useState('');
+  const [productConfig, setProductConfig] = useState("");
   const [productConfigInput, setProductConfigInput] = useState([]);
   const [dataFetched, setDataFetched] = useState(false);
   const [tabValue, setTabValue] = useState(0);
-  const [selectedOption, setSelectedOption] = useState('input');
+  const [selectedOption, setSelectedOption] = useState("file upload");
+  const [loading, setLoading] = useState(true);
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
@@ -34,18 +60,21 @@ const Home = () => {
     const reader = new FileReader();
     reader.onload = (e) => {
       const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, { type: 'array' });
+      const workbook = XLSX.read(data, { type: "array" });
 
-      const targetSheetName = 'pending';
+      const targetSheetName = "pending";
       if (workbook.SheetNames.includes(targetSheetName)) {
-        const worksheet = XLSX.utils.sheet_to_json(workbook.Sheets[targetSheetName], { header: 1 });
+        const worksheet = XLSX.utils.sheet_to_json(
+          workbook.Sheets[targetSheetName],
+          { header: 1 }
+        );
         const headers = worksheet[0];
         const rows = worksheet.slice(1).map((row) => {
           const rowData = {};
           headers.forEach((header, index) => {
             rowData[header] = row[index];
           });
-          rowData['Option'] = 'Optional';
+          rowData["Option"] = "Optional";
           return rowData;
         });
         setOriginalData(rows);
@@ -59,56 +88,125 @@ const Home = () => {
 
   const handleDropdownChange = (e, rowIndex) => {
     const updatedData = [...originalData];
-    updatedData[rowIndex]['Option'] = e.target.value;
+    updatedData[rowIndex]["Option"] = e.target.value;
     setOriginalData(updatedData);
   };
 
   const handleUpload = async () => {
     if (!selectedFile) return;
     setUploading(true);
+    setLoading(true);
     const workbook = XLSX.utils.book_new();
     const worksheet = XLSX.utils.json_to_sheet(originalData);
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
-    const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+    const wbout = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
 
     const formData = new FormData();
-    formData.append('file', new Blob([wbout], { type: 'application/octet-stream' }), selectedFile.name);
+    formData.append(
+      "file",
+      new Blob([wbout], { type: "application/octet-stream" }),
+      selectedFile.name
+    );
 
     try {
-      const response = await axios.post(`${process.env.REACT_APP_API_DOMAIN}/api/upload`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      setMessage({ type: "info", text: "Uploading file..." });
+
+      const response = await axios.post(
+        `${process.env.REACT_APP_API_DOMAIN}/api/upload`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
       const types = response.data.data.product_type;
       setProductTypes(types);
       const productConfigInput = response.data.data.product_config;
       setProductConfigInput(productConfigInput);
-      setMessage({ type: 'success', text: 'File uploaded successfully!' });
+      setMessage({ type: "success", text: "File uploaded successfully!" });
     } catch (error) {
-      setMessage({ type: 'error', text: 'Error uploading file. Please try again.' });
+      setMessage({
+        type: "error",
+        text: "Error uploading file. Please try again.",
+      });
     } finally {
       setUploading(false);
+      setLoading(false);
     }
   };
 
+  // const handleUpload = async () => {
+  //   if (!selectedFile) return;
+  //   setUploading(true);
+  //   setLoading(true); // Start loading indicator
+  //   const workbook = XLSX.utils.book_new();
+  //   const worksheet = XLSX.utils.json_to_sheet(originalData);
+  //   XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+  //   const wbout = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+
+  //   const formData = new FormData();
+  //   formData.append(
+  //     "file",
+  //     new Blob([wbout], { type: "application/octet-stream" }),
+  //     selectedFile.name
+  //   );
+
+  //   try {
+  //     const response = await axios.post(
+  //       `${process.env.REACT_APP_API_DOMAIN}/api/upload`,
+  //       formData,
+  //       {
+  //         headers: { "Content-Type": "multipart/form-data" },
+  //       }
+  //     );
+  //     const types = response.data.data.product_type;
+  //     setProductTypes(types);
+  //     const productConfigInput = response.data.data.product_config;
+  //     setProductConfigInput(productConfigInput);
+  //     setMessage({ type: "success", text: "File uploaded successfully!" });
+  //   } catch (error) {
+  //     setMessage({
+  //       type: "error",
+  //       text: "Error uploading file. Please try again.",
+  //     });
+  //   } finally {
+  //     setUploading(false);
+  //     setLoading(false); // Stop loading indicator
+  //   }
+  // };
+
   const fetchData = async () => {
     if (!algorithm || !productName || !productConfig) {
-      setMessage({ type: 'error', text: 'Please select an algorithm, product name, and product config' });
+      setMessage({
+        type: "error",
+        text: "Please select an algorithm, product name, and product config",
+      });
       return;
     }
 
     setFetching(true);
     try {
-      const response = await axios.get(`${process.env.REACT_APP_API_DOMAIN}/api/fetch_plan_data`, {
-        params: { algorithm, product_name: productName, product_config: productConfig, client_name: 'CPFL' }
-      });
+      const response = await axios.get(
+        `${process.env.REACT_APP_API_DOMAIN}/api/fetch_plan_data`,
+        {
+          params: {
+            algorithm,
+            product_name: productName,
+            product_config: productConfig,
+            client_name: "CPFL",
+          },
+        }
+      );
 
       setCustomerData(response.data.customer);
       setPlanData(response.data.plan);
-      setMetricData(response.data.metric)
+      setMetricData(response.data.metric);
       setMessage(null);
       setDataFetched(true);
     } catch (error) {
-      setMessage({ type: 'error', text: 'Error fetching data. Please try again.' });
+      setMessage({
+        type: "error",
+        text: "Error fetching data. Please try again.",
+      });
     } finally {
       setFetching(false);
     }
@@ -118,19 +216,24 @@ const Home = () => {
     const updatedPlanData = [...planData];
     const newValue = e.target.value ? parseFloat(e.target.value) : 0;
     updatedPlanData[rowIndex][columnName] = newValue;
-    updatedPlanData[rowIndex]['Total width'] = Object.keys(updatedPlanData[rowIndex])
-      .filter(key => key >= 0 && key <= 11)
-      .reduce((sum, key) => sum + (parseFloat(updatedPlanData[rowIndex][key]) || 0), 0);
+    updatedPlanData[rowIndex]["Total width"] = Object.keys(
+      updatedPlanData[rowIndex]
+    )
+      .filter((key) => key >= 0 && key <= 11)
+      .reduce(
+        (sum, key) => sum + (parseFloat(updatedPlanData[rowIndex][key]) || 0),
+        0
+      );
     setPlanData(updatedPlanData);
   };
 
   const downloadExcel = (data, filename) => {
     const worksheet = XLSX.utils.json_to_sheet(data);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
     XLSX.writeFile(workbook, `${filename}.xlsx`);
   };
-  
+
   const renderEditableCell = (rowIndex, columnName, value) => (
     <TextField
       value={value}
@@ -138,11 +241,13 @@ const Home = () => {
       type="text"
       variant="outlined"
       size="small"
-      inputProps={{ style: { 
-        width: (value / 16) ,
-        fontSize: '14px', // Adjust the font size here
-        padding: 5, // Remove padding
-      } }}
+      inputProps={{
+        style: {
+          width: value / 16,
+          fontSize: "14px", // Adjust the font size here
+          padding: 5, // Remove padding
+        },
+      }}
     />
   );
 
@@ -151,40 +256,64 @@ const Home = () => {
     return (
       <ThemeProvider theme={theme}>
         <div>
-          <Typography variant="h6" style={{}}>{title}</Typography>
-          <TableContainer component={Paper} style={{ marginTop: '1%', marginBottom: '1%', border: '1px solid #ccc', height:'55vh', width:'100%' }}>
+          <Typography variant="h6" style={{}}>
+            {title}
+          </Typography>
+          <TableContainer
+            component={Paper}
+            style={{
+              marginTop: "1%",
+              marginBottom: "1%",
+              border: "1px solid #ccc",
+              height: "55vh",
+              width: "100%",
+            }}
+          >
             <Table stickyHeader>
               <TableHead>
                 <TableRow>
                   {Object.keys(data[0]).map((column) => (
-                    <TableCell key={column} style={{ border: '1px solid #ccc', fontWeight: 'bold', background: 'black', color: 'white' }}>{column}</TableCell>
+                    <TableCell
+                      key={column}
+                      style={{
+                        border: "1px solid #ccc",
+                        fontWeight: "bold",
+                        background: "black",
+                        color: "white",
+                      }}
+                    >
+                      {column}
+                    </TableCell>
                   ))}
                 </TableRow>
               </TableHead>
               <TableBody>
                 {data.map((row, rowIndex) => (
                   <TableRow key={rowIndex}>
-                    {Object.keys(row).map((column, cellIndex) => (  
-                      <TableCell key={cellIndex} style={{ 
-                        border: '1px solid #ccc',                       
-                        padding: 5, // Remove padding from TableCell
-                    }}>
-                        {isEditable && column >= 0 && column <= 11
-                          ? renderEditableCell(rowIndex, column, row[column])
-                          : column === 'Option' ? (
-                            <Select
-                              value={row[column]}
-                              onChange={(e) => handleDropdownChange(e, rowIndex)}
-                              variant="outlined"
-                              size="small"
-                              fullWidth
-                            >
-                              <MenuItem value="MustMake">Must Make</MenuItem>
-                              <MenuItem value="Optional">Optional</MenuItem>
-                            </Select>
-                          ) : (
-                            row[column]
-                          )}
+                    {Object.keys(row).map((column, cellIndex) => (
+                      <TableCell
+                        key={cellIndex}
+                        style={{
+                          border: "1px solid #ccc",
+                          padding: 5, // Remove padding from TableCell
+                        }}
+                      >
+                        {isEditable && column >= 0 && column <= 11 ? (
+                          renderEditableCell(rowIndex, column, row[column])
+                        ) : column === "Option" ? (
+                          <Select
+                            value={row[column]}
+                            onChange={(e) => handleDropdownChange(e, rowIndex)}
+                            variant="outlined"
+                            size="small"
+                            fullWidth
+                          >
+                            <MenuItem value="MustMake">Must Make</MenuItem>
+                            <MenuItem value="Optional">Optional</MenuItem>
+                          </Select>
+                        ) : (
+                          row[column]
+                        )}
                       </TableCell>
                     ))}
                   </TableRow>
@@ -197,7 +326,7 @@ const Home = () => {
               variant="contained"
               color="secondary"
               onClick={handleUpload}
-              style={{ marginTop: '10px' }}
+              style={{ marginTop: "10px" }}
             >
               Upload Modified File
             </Button>
@@ -206,8 +335,8 @@ const Home = () => {
             <Button
               variant="contained"
               color="secondary"
-              onClick={() => downloadExcel(data, title.replace(' ', '_'))}
-              style={{ marginTop: '10px' }}
+              onClick={() => downloadExcel(data, title.replace(" ", "_"))}
+              style={{ marginTop: "10px" }}
             >
               Download {title} as Excel
             </Button>
@@ -219,19 +348,42 @@ const Home = () => {
 
   const renderPlanTable = (data, title, isEditable) => {
     if (!data || data.length === 0) return null;
-    const additionalColumns = ['Total width', 'Trim', 'Sets']; // Add any additional specific columns here
-    const numericalColumns = Object.keys(data[0]).filter(key => /^\d+$/.test(key)); // Selects columns with only numbers
+    const additionalColumns = ["Total width", "Trim", "Sets"]; // Add any additional specific columns here
+    const numericalColumns = Object.keys(data[0]).filter((key) =>
+      /^\d+$/.test(key)
+    ); // Selects columns with only numbers
     const columnsToShow = [...additionalColumns, ...numericalColumns];
     return (
       <ThemeProvider theme={theme}>
         <div>
-          <Typography variant="h6" style={{}}>{title}</Typography>
-          <TableContainer component={Paper} style={{ marginTop: '1%', marginBottom: '1%', border: '1px solid #ccc', height:'55vh', width:'100%' }}>
+          <Typography variant="h6" style={{}}>
+            {title}
+          </Typography>
+          <TableContainer
+            component={Paper}
+            style={{
+              marginTop: "1%",
+              marginBottom: "1%",
+              border: "1px solid #ccc",
+              height: "55vh",
+              width: "100%",
+            }}
+          >
             <Table stickyHeader>
               <TableHead>
                 <TableRow>
                   {columnsToShow.map((column) => (
-                    <TableCell key={column} style={{ border: '1px solid #ccc', fontWeight: 'bold', background: 'black', color: 'white' }}>{column}</TableCell>
+                    <TableCell
+                      key={column}
+                      style={{
+                        border: "1px solid #ccc",
+                        fontWeight: "bold",
+                        background: "black",
+                        color: "white",
+                      }}
+                    >
+                      {column}
+                    </TableCell>
                   ))}
                 </TableRow>
               </TableHead>
@@ -239,26 +391,29 @@ const Home = () => {
                 {data.map((row, rowIndex) => (
                   <TableRow key={rowIndex}>
                     {columnsToShow.map((column, cellIndex) => (
-                    <TableCell key={cellIndex} style={{ 
-                      border: '1px solid #ccc',                       
-                      padding: 5, // Remove padding from TableCell
-                    }}>
-                        {isEditable && column >= 0 && column <= 11
-                          ? renderEditableCell(rowIndex, column, row[column])
-                          : column === 'Option' ? (
-                            <Select
-                              value={row[column]}
-                              onChange={(e) => handleDropdownChange(e, rowIndex)}
-                              variant="outlined"
-                              size="small"
-                              fullWidth
-                            >
-                              <MenuItem value="MustMake">Must Make</MenuItem>
-                              <MenuItem value="Optional">Optional</MenuItem>
-                            </Select>
-                          ) : (
-                            row[column]
-                          )}
+                      <TableCell
+                        key={cellIndex}
+                        style={{
+                          border: "1px solid #ccc",
+                          padding: 5, // Remove padding from TableCell
+                        }}
+                      >
+                        {isEditable && column >= 0 && column <= 11 ? (
+                          renderEditableCell(rowIndex, column, row[column])
+                        ) : column === "Option" ? (
+                          <Select
+                            value={row[column]}
+                            onChange={(e) => handleDropdownChange(e, rowIndex)}
+                            variant="outlined"
+                            size="small"
+                            fullWidth
+                          >
+                            <MenuItem value="MustMake">Must Make</MenuItem>
+                            <MenuItem value="Optional">Optional</MenuItem>
+                          </Select>
+                        ) : (
+                          row[column]
+                        )}
                       </TableCell>
                     ))}
                   </TableRow>
@@ -271,7 +426,7 @@ const Home = () => {
               variant="contained"
               color="secondary"
               onClick={handleUpload}
-              style={{ marginTop: '10px' }}
+              style={{ marginTop: "10px" }}
             >
               Upload Modified File
             </Button>
@@ -280,8 +435,8 @@ const Home = () => {
             <Button
               variant="contained"
               color="secondary"
-              onClick={() => downloadExcel(data, title.replace(' ', '_'))}
-              style={{ marginTop: '10px' }}
+              onClick={() => downloadExcel(data, title.replace(" ", "_"))}
+              style={{ marginTop: "10px" }}
             >
               Download {title} as Excel
             </Button>
@@ -299,24 +454,32 @@ const Home = () => {
     <div>
       <input
         accept=".xlsx, .xls"
-        style={{ display: 'none' }}
+        style={{ display: "none" }}
         id="contained-button-file"
         type="file"
         onChange={handleFileChange}
       />
       <label htmlFor="contained-button-file">
-        <Button variant="contained" component="span" startIcon={<CloudUploadIcon />}>
+        <Button
+          variant="contained"
+          component="span"
+          startIcon={<CloudUploadIcon />}
+        >
           Select File
         </Button>
       </label>
       {selectedFile && (
-        <Typography variant="body1" style={{ display: 'inline', marginLeft: '10px' }}>
+        <Typography
+          variant="body1"
+          style={{ display: "inline", marginLeft: "10px" }}
+        >
           {selectedFile.name}
         </Typography>
       )}
-      {!dataFetched && selectedFile && renderTable(originalData, "Original File", false)}
+      {originalData.length > 0 &&
+        renderTable(originalData, "Original File", false)}
       {message && (
-        <div style={{ marginTop: '20px' }}>
+        <div style={{ marginTop: "20px" }}>
           <Alert severity={message.type}>{message.text}</Alert>
         </div>
       )}
@@ -326,7 +489,10 @@ const Home = () => {
   const renderOutputSection = () => (
     <div>
       <div style={{}}>
-        <FormControl variant="outlined" style={{ marginRight: '10px', width: 300 }}>
+        <FormControl
+          variant="outlined"
+          style={{ marginRight: "10px", width: 300 }}
+        >
           <InputLabel>Algorithm</InputLabel>
           <Select
             value={algorithm}
@@ -337,7 +503,10 @@ const Home = () => {
             <MenuItem value="wastage">Wastage</MenuItem>
           </Select>
         </FormControl>
-        <FormControl variant="outlined" style={{ marginRight: '10px', minWidth: 300 }}>
+        <FormControl
+          variant="outlined"
+          style={{ marginRight: "10px", minWidth: 300 }}
+        >
           <InputLabel>Product Name</InputLabel>
           <Select
             value={productName}
@@ -345,11 +514,16 @@ const Home = () => {
             label="Product Name"
           >
             {productTypes.map((type, index) => (
-              <MenuItem key={index} value={type}>{type}</MenuItem>
+              <MenuItem key={index} value={type}>
+                {type}
+              </MenuItem>
             ))}
           </Select>
         </FormControl>
-        <FormControl variant="outlined" style={{ marginRight: '10px', minWidth: 300 }}>
+        <FormControl
+          variant="outlined"
+          style={{ marginRight: "10px", minWidth: 300 }}
+        >
           <InputLabel>Product Config</InputLabel>
           <Select
             value={productConfig}
@@ -357,7 +531,9 @@ const Home = () => {
             label="Product Config"
           >
             {productConfigInput.map((config, index) => (
-              <MenuItem key={index} value={config}>{config}</MenuItem>
+              <MenuItem key={index} value={config}>
+                {config}
+              </MenuItem>
             ))}
           </Select>
         </FormControl>
@@ -366,15 +542,19 @@ const Home = () => {
           color="primary"
           onClick={fetchData}
           disabled={fetching}
-          style={{width:200}}
+          style={{ width: 200 }}
           startIcon={fetching ? <CircularProgress size={24} /> : null}
         >
-          {fetching ? 'Fetching...' : 'Fetch Data'}
+          {fetching ? "Fetching..." : "Fetch Data"}
         </Button>
       </div>
       {dataFetched && (
-        <Box sx={{ }}>
-          <Tabs value={tabValue} onChange={handleChangeTab} aria-label="plan and customer data tabs">
+        <Box sx={{}}>
+          <Tabs
+            value={tabValue}
+            onChange={handleChangeTab}
+            aria-label="plan and customer data tabs"
+          >
             <Tab label="Metric Data" />
             <Tab label="Plan Data" />
             <Tab label="Customer Data" />
@@ -383,8 +563,8 @@ const Home = () => {
             {renderTable(metricData, "Metric Data", false)}
           </TabPanel>
           <TabPanel value={tabValue} index={1}>
-          {renderPlanTable(planData, "Plan Data", true)}
-          {/* {planData.map((row, index) => renderPlanTable(row, `Plan Data Row ${index + 1}`, true))} */}
+            {renderPlanTable(planData, "Plan Data", true)}
+            {/* {planData.map((row, index) => renderPlanTable(row, `Plan Data Row ${index + 1}`, true))} */}
           </TabPanel>
           <TabPanel value={tabValue} index={2}>
             {renderTable(customerData, "Customer Data", false)}
@@ -398,23 +578,79 @@ const Home = () => {
     <ThemeProvider theme={theme}>
       <>
         <Header />
-        <div style={{ display: 'flex', }}>
-          <Drawer
-            variant="permanent"
-            open
-          >
-            <List>
-              <ListItem button onClick={() => setSelectedOption('input')}>
-                <ListItemText primary="Input" />
-              </ListItem>
-              <ListItem button onClick={() => setSelectedOption('output')}>
-                <ListItemText primary="Output" />
-              </ListItem>
-            </List>
+        <div style={{ display: "flex" }}>
+          <Drawer variant="permanent" open>
+            <Box style={{ paddingLeft: "2vw", paddingBottom: "8vh" }}>
+              <List sx={{ mt: 20 }}>
+                <ListItem
+                  button
+                  onClick={() => setSelectedOption("file upload")}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    flexDirection: "column",
+                    justifyContent: "flex-start",
+                    padding: "1.2vw",
+                    width: "75%",
+                    textTransform: "none",
+                    fontSize: "1.2vw",
+                    color: "black",
+                    backgroundColor: "transparent",
+                    border:
+                      selectedOption === "file upload"
+                        ? "0.2vw solid black"
+                        : "none",
+                  }}
+                >
+                  <FileUploadIcon
+                    sx={{
+                      fontSize: "3vw",
+                    }}
+                  ></FileUploadIcon>
+                  <Typography
+                    style={{ whiteSpace: "nowrap", fontWeight: "bold" }}
+                  >
+                    File Upload
+                  </Typography>
+                </ListItem>
+                <ListItem
+                  button
+                  onClick={() => setSelectedOption("results")}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    flexDirection: "column",
+                    justifyContent: "flex-start",
+                    padding: "1.2vw",
+                    width: "75%",
+                    textTransform: "none",
+                    fontSize: "1.2vw",
+                    color: "black",
+                    backgroundColor: "transparent",
+                    border:
+                      selectedOption === "results"
+                        ? "0.2vw solid black"
+                        : "none",
+                    marginTop: 15,
+                  }}
+                >
+                  <OutputIcon
+                    sx={{
+                      fontSize: "3vw",
+                    }}
+                  ></OutputIcon>
+                  <Typography style={{ fontWeight: "bold" }}>
+                    Results
+                  </Typography>
+                </ListItem>
+              </List>
+            </Box>
           </Drawer>
-          <Container style={{ flexGrow: 1, padding: '20px' }}>
-            {selectedOption === 'input' && renderUploadSection()}
-            {selectedOption === 'output' && renderOutputSection()}
+          <Container
+            style={{ flexGrow: 1, padding: "20px", marginLeft: "150px" }}
+          >
+            {selectedOption === "file upload" && renderUploadSection()}
+            {selectedOption === "results" && renderOutputSection()}
           </Container>
         </div>
       </>
@@ -435,7 +671,7 @@ function TabPanel(props) {
     >
       {value === index && (
         <Box sx={{ p: 3 }}>
-          <Typography fontWeight='bold'>{children}</Typography>
+          <Typography fontWeight="bold">{children}</Typography>
         </Box>
       )}
     </div>
