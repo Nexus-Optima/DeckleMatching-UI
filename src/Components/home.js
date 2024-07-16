@@ -265,7 +265,7 @@ const Home = () => {
               marginTop: "1%",
               marginBottom: "1%",
               border: "1px solid #ccc",
-              height: "55vh",
+              height: "60vh",
               width: "100%",
             }}
           >
@@ -590,10 +590,10 @@ const Home = () => {
                     alignItems: "center",
                     flexDirection: "column",
                     justifyContent: "flex-start",
-                    padding: "1.2vw",
+                    padding: "1vw",
                     width: "75%",
                     textTransform: "none",
-                    fontSize: "1.2vw",
+                    fontSize: "1vw",
                     color: "black",
                     backgroundColor: "transparent",
                     border:
@@ -621,10 +621,10 @@ const Home = () => {
                     alignItems: "center",
                     flexDirection: "column",
                     justifyContent: "flex-start",
-                    padding: "1.2vw",
+                    padding: "1vw",
                     width: "75%",
                     textTransform: "none",
-                    fontSize: "1.2vw",
+                    fontSize: "1vw",
                     color: "black",
                     backgroundColor: "transparent",
                     border:
