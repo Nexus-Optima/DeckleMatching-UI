@@ -96,28 +96,18 @@ const Home = () => {
     if (!selectedFile) return;
     setUploading(true);
     setLoading(true);
-    const workbook = XLSX.utils.book_new();
-    const worksheet = XLSX.utils.json_to_sheet(originalData);
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
-    const wbout = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-
-    const formData = new FormData();
-    formData.append(
-      "file",
-      new Blob([wbout], { type: "application/octet-stream" }),
-      selectedFile.name
-    );
 
     try {
       setMessage({ type: "info", text: "Uploading file..." });
 
       const response = await axios.post(
         `${process.env.REACT_APP_API_DOMAIN}/api/upload`,
-        formData,
+        { data: originalData },
         {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: { "Content-Type": "application/json" },
         }
       );
+
       const types = response.data.data.product_type;
       setProductTypes(types);
       const productConfigInput = response.data.data.product_config;
@@ -133,46 +123,6 @@ const Home = () => {
       setLoading(false);
     }
   };
-
-  // const handleUpload = async () => {
-  //   if (!selectedFile) return;
-  //   setUploading(true);
-  //   setLoading(true); // Start loading indicator
-  //   const workbook = XLSX.utils.book_new();
-  //   const worksheet = XLSX.utils.json_to_sheet(originalData);
-  //   XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
-  //   const wbout = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-
-  //   const formData = new FormData();
-  //   formData.append(
-  //     "file",
-  //     new Blob([wbout], { type: "application/octet-stream" }),
-  //     selectedFile.name
-  //   );
-
-  //   try {
-  //     const response = await axios.post(
-  //       `${process.env.REACT_APP_API_DOMAIN}/api/upload`,
-  //       formData,
-  //       {
-  //         headers: { "Content-Type": "multipart/form-data" },
-  //       }
-  //     );
-  //     const types = response.data.data.product_type;
-  //     setProductTypes(types);
-  //     const productConfigInput = response.data.data.product_config;
-  //     setProductConfigInput(productConfigInput);
-  //     setMessage({ type: "success", text: "File uploaded successfully!" });
-  //   } catch (error) {
-  //     setMessage({
-  //       type: "error",
-  //       text: "Error uploading file. Please try again.",
-  //     });
-  //   } finally {
-  //     setUploading(false);
-  //     setLoading(false); // Stop loading indicator
-  //   }
-  // };
 
   const fetchData = async () => {
     if (!algorithm || !productName || !productConfig) {
