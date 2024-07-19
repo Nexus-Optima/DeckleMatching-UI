@@ -32,6 +32,7 @@ import Header from "../Header/header";
 import theme from "../Themes/themes";
 import FileUploadIcon from "@mui/icons-material/FileUpload";
 import OutputIcon from "@mui/icons-material/Output";
+import logo from "../Images/abc_image.png";
 
 const Home = () => {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -529,9 +530,26 @@ const Home = () => {
       <>
         <Header />
         <div style={{ display: "flex" }}>
-          <Drawer variant="permanent" open>
+          <Drawer
+            variant="permanent"
+            open
+            sx={{
+              "& .MuiDrawer-paper": {
+                overflowX: "hidden", 
+              },
+            }}
+          >
+            <img
+              src={logo}
+              alt="Logo"
+              style={{
+                padding: "0 1%",
+                width: "150px",
+                height: "80px",
+              }}
+            />
             <Box style={{ paddingLeft: "2vw", paddingBottom: "8vh" }}>
-              <List sx={{ mt: 20 }}>
+              <List>
                 <ListItem
                   button
                   onClick={() => setSelectedOption("file upload")}
