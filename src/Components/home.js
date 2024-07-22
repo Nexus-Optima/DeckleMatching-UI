@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   ThemeProvider,
   Button,
@@ -52,6 +52,16 @@ const Home = () => {
   const [tabValue, setTabValue] = useState(0);
   const [selectedOption, setSelectedOption] = useState("file upload");
   const [loading, setLoading] = useState(true);
+  const [unauthorized, setUnauthorized] = useState(false);
+  const [mainDomain, setMainDomain] = useState(
+    process.env.REACT_APP_MAIN_DOMAIN
+  );
+
+  useEffect(() => {
+    if (!document.referrer.startsWith(mainDomain)) {
+      setUnauthorized(true);
+    }
+  }, [mainDomain]);
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
@@ -99,21 +109,24 @@ const Home = () => {
     setLoading(true);
 
     try {
-      setMessage({ type: "info", text: "Uploading file..." });
+      if (document.referrer.startsWith(mainDomain)) {
+        setMessage({ type: "info", text: "Uploading file..." });
+        const response = await axios.post(
+          `${process.env.REACT_APP_API_DOMAIN}/api/upload`,
+          { data: originalData },
+          {
+            headers: { "Content-Type": "application/json" },
+          }
+        );
 
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_DOMAIN}/api/upload`,
-        { data: originalData },
-        {
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-
-      const types = response.data.data.product_type;
-      setProductTypes(types);
-      const productConfigInput = response.data.data.product_config;
-      setProductConfigInput(productConfigInput);
-      setMessage({ type: "success", text: "File uploaded successfully!" });
+        const types = response.data.data.product_type;
+        setProductTypes(types);
+        const productConfigInput = response.data.data.product_config;
+        setProductConfigInput(productConfigInput);
+        setMessage({ type: "success", text: "File uploaded successfully!" });
+      } else {
+        setUnauthorized(true);
+      }
     } catch (error) {
       setMessage({
         type: "error",
@@ -524,104 +537,132 @@ const Home = () => {
       )}
     </div>
   );
-
   return (
     <ThemeProvider theme={theme}>
-      <>
-        <Header />
-        <div style={{ display: "flex" }}>
-          <Drawer
-            variant="permanent"
-            open
-            sx={{
-              "& .MuiDrawer-paper": {
-                overflowX: "hidden", 
-              },
+      {unauthorized ? (
+        <Container
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            height: "100vh",
+            paddingBottom: "35%",
+          }}
+        >
+          <Typography variant="h5" color="error">
+            Unauthorized - Access denied.
+          </Typography>
+          <Button
+            variant="contained"
+            color="primary"
+            style={{
+              marginTop: "2%",
+              backgroundColor: "black",
+              color: "white",
             }}
+            onClick={() => (window.location.href = mainDomain)}
           >
-            <img
-              src={logo}
-              alt="Logo"
-              style={{
-                padding: "0 1%",
-                width: "150px",
-                height: "80px",
+            Go back to dashboard
+          </Button>
+        </Container>
+      ) : (
+        <>
+          <Header />
+          <div style={{ display: "flex" }}>
+            <Drawer
+              variant="permanent"
+              open
+              sx={{
+                "& .MuiDrawer-paper": {
+                  overflowX: "hidden",
+                },
               }}
-            />
-            <Box style={{ paddingLeft: "2vw", paddingBottom: "8vh" }}>
-              <List>
-                <ListItem
-                  button
-                  onClick={() => setSelectedOption("file upload")}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    flexDirection: "column",
-                    justifyContent: "flex-start",
-                    padding: "1vw",
-                    width: "75%",
-                    textTransform: "none",
-                    fontSize: "1vw",
-                    color: "black",
-                    backgroundColor: "transparent",
-                    border:
-                      selectedOption === "file upload"
-                        ? "0.2vw solid black"
-                        : "none",
-                  }}
-                >
-                  <FileUploadIcon
-                    sx={{
-                      fontSize: "3vw",
+            >
+              <img
+                src={logo}
+                alt="Logo"
+                style={{
+                  padding: "0 1%",
+                  width: "150px",
+                  height: "80px",
+                }}
+              />
+              <Box style={{ paddingLeft: "2vw", paddingBottom: "8vh" }}>
+                <List>
+                  <ListItem
+                    button
+                    onClick={() => setSelectedOption("file upload")}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      flexDirection: "column",
+                      justifyContent: "flex-start",
+                      padding: "1vw",
+                      width: "75%",
+                      textTransform: "none",
+                      fontSize: "1vw",
+                      color: "black",
+                      backgroundColor: "transparent",
+                      border:
+                        selectedOption === "file upload"
+                          ? "0.2vw solid black"
+                          : "none",
                     }}
-                  ></FileUploadIcon>
-                  <Typography
-                    style={{ whiteSpace: "nowrap", fontWeight: "bold" }}
                   >
-                    File Upload
-                  </Typography>
-                </ListItem>
-                <ListItem
-                  button
-                  onClick={() => setSelectedOption("results")}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    flexDirection: "column",
-                    justifyContent: "flex-start",
-                    padding: "1vw",
-                    width: "75%",
-                    textTransform: "none",
-                    fontSize: "1vw",
-                    color: "black",
-                    backgroundColor: "transparent",
-                    border:
-                      selectedOption === "results"
-                        ? "0.2vw solid black"
-                        : "none",
-                    marginTop: 15,
-                  }}
-                >
-                  <OutputIcon
-                    sx={{
-                      fontSize: "3vw",
+                    <FileUploadIcon
+                      sx={{
+                        fontSize: "3vw",
+                      }}
+                    ></FileUploadIcon>
+                    <Typography
+                      style={{ whiteSpace: "nowrap", fontWeight: "bold" }}
+                    >
+                      File Upload
+                    </Typography>
+                  </ListItem>
+                  <ListItem
+                    button
+                    onClick={() => setSelectedOption("results")}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      flexDirection: "column",
+                      justifyContent: "flex-start",
+                      padding: "1vw",
+                      width: "75%",
+                      textTransform: "none",
+                      fontSize: "1vw",
+                      color: "black",
+                      backgroundColor: "transparent",
+                      border:
+                        selectedOption === "results"
+                          ? "0.2vw solid black"
+                          : "none",
+                      marginTop: 15,
                     }}
-                  ></OutputIcon>
-                  <Typography style={{ fontWeight: "bold" }}>
-                    Results
-                  </Typography>
-                </ListItem>
-              </List>
-            </Box>
-          </Drawer>
-          <Container
-            style={{ flexGrow: 1, padding: "20px", marginLeft: "150px" }}
-          >
-            {selectedOption === "file upload" && renderUploadSection()}
-            {selectedOption === "results" && renderOutputSection()}
-          </Container>
-        </div>
-      </>
+                  >
+                    <OutputIcon
+                      sx={{
+                        fontSize: "3vw",
+                      }}
+                    ></OutputIcon>
+                    <Typography style={{ fontWeight: "bold" }}>
+                      Results
+                    </Typography>
+                  </ListItem>
+                </List>
+              </Box>
+            </Drawer>
+            <Container
+              style={{ flexGrow: 1, padding: "20px", marginLeft: "150px" }}
+            >
+              {selectedOption === "file upload" && renderUploadSection()}
+              {selectedOption === "results" && renderOutputSection()}
+            </Container>
+          </div>
+        </>
+      )}
     </ThemeProvider>
   );
 };
