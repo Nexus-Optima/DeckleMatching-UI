@@ -91,7 +91,7 @@ const Home = () => {
       const data = new Uint8Array(e.target.result);
       const workbook = XLSX.read(data, { type: "array" });
 
-      const targetSheetName = "pending";
+      const targetSheetName = "PENDING";
       if (workbook.SheetNames.includes(targetSheetName)) {
         const worksheet = XLSX.utils.sheet_to_json(
           workbook.Sheets[targetSheetName],
