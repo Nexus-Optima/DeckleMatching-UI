@@ -56,6 +56,24 @@ const Home = () => {
   const [mainDomain, setMainDomain] = useState(
     process.env.REACT_APP_MAIN_DOMAIN
   );
+  const [dragOver, setDragOver] = useState(false);
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setDragOver(true);
+  };
+
+  const handleDragLeave = () => {
+    setDragOver(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer.files[0];
+    setSelectedFile(file);
+    handleFileChange({ target: { files: [file] } });
+  };
 
   useEffect(() => {
     if (!document.referrer.startsWith(mainDomain)) {
@@ -214,9 +232,13 @@ const Home = () => {
       }}
     />
   );
-
   const renderTable = (data, title, isEditable) => {
     if (!data || data.length === 0) return null;
+    let columns = Object.keys(data[0]);
+    if (title === "Original File") {
+      columns = ["Option", ...columns.filter((col) => col !== "Option")];
+    }
+
     return (
       <ThemeProvider theme={theme}>
         <div>
@@ -236,7 +258,7 @@ const Home = () => {
             <Table stickyHeader>
               <TableHead>
                 <TableRow>
-                  {Object.keys(data[0]).map((column) => (
+                  {columns.map((column) => (
                     <TableCell
                       key={column}
                       style={{
@@ -254,7 +276,7 @@ const Home = () => {
               <TableBody>
                 {data.map((row, rowIndex) => (
                   <TableRow key={rowIndex}>
-                    {Object.keys(row).map((column, cellIndex) => (
+                    {columns.map((column, cellIndex) => (
                       <TableCell
                         key={cellIndex}
                         style={{
@@ -286,14 +308,24 @@ const Home = () => {
             </Table>
           </TableContainer>
           {title === "Original File" && (
-            <Button
-              variant="contained"
-              color="secondary"
-              onClick={handleUpload}
-              style={{ marginTop: "10px" }}
-            >
-              Upload Modified File
-            </Button>
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <Button
+                variant="contained"
+                color="secondary"
+                onClick={handleUpload}
+                style={{ marginTop: "10px", marginRight: "10px" }}
+              >
+                Upload Modified File
+              </Button>
+              <Button
+                variant="contained"
+                color="secondary"
+                onClick={resetHandler}
+                style={{ marginTop: "10px" }}
+              >
+                Reset
+              </Button>
+            </div>
           )}
           {title !== "Original File" && (
             <Button
@@ -414,28 +446,54 @@ const Home = () => {
     setTabValue(newValue);
   };
 
+  const resetHandler = () => {
+    setSelectedFile(null);
+    setMessage(null);
+    setOriginalData([]);
+    setDataFetched(false);
+  };
+
   const renderUploadSection = () => (
-    <div>
-      <input
-        accept=".xlsx, .xls"
-        style={{ display: "none" }}
-        id="contained-button-file"
-        type="file"
-        onChange={handleFileChange}
-      />
-      <label htmlFor="contained-button-file">
-        <Button
-          variant="contained"
-          component="span"
-          startIcon={<CloudUploadIcon />}
+    <div style={{ position: "relative", height: "100%", width: "100%" }}>
+      {!selectedFile && (
+        <input
+          accept=".xlsx, .xls"
+          style={{ display: "none" }}
+          id="contained-button-file"
+          type="file"
+          onChange={handleFileChange}
+        />
+      )}
+      {!selectedFile && (
+        <label
+          htmlFor="contained-button-file"
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "20%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            border: "2px dashed black",
+            borderRadius: "8px",
+            cursor: "pointer",
+            backgroundColor: "#f9f9f9",
+          }}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
         >
-          Select File
-        </Button>
-      </label>
+          <Typography variant="h6" style={{ textAlign: "center" }}>
+            Drag and drop your file here or click to select
+          </Typography>
+        </label>
+      )}
       {selectedFile && (
         <Typography
           variant="body1"
-          style={{ display: "inline", marginLeft: "10px" }}
+          style={{ marginTop: "10px", textAlign: "center" }}
         >
           {selectedFile.name}
         </Typography>
@@ -537,8 +595,15 @@ const Home = () => {
       )}
     </div>
   );
+  const dragOverStyles = `
+    .drag-over {
+      border: 2px solid #000;
+      background-color: #e0e0e0;
+    }
+  `;
   return (
     <ThemeProvider theme={theme}>
+      <style>{dragOverStyles}</style>
       {unauthorized ? (
         <Container
           style={{
@@ -655,7 +720,13 @@ const Home = () => {
               </Box>
             </Drawer>
             <Container
-              style={{ flexGrow: 1, padding: "20px", marginLeft: "150px" }}
+              style={{
+                flexGrow: 1,
+                padding: "20px",
+                marginLeft: "150px",
+                height: "calc(100vh - 64px)",
+                position: "relative",
+              }}
             >
               {selectedOption === "file upload" && renderUploadSection()}
               {selectedOption === "results" && renderOutputSection()}
