@@ -516,7 +516,7 @@ const Home = () => {
   const renderOutputSection = () => (
     <div>
       <Grid container spacing={2} alignItems="center" justifyContent="center">
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={3}>
           <FormControl variant="outlined" fullWidth>
             <InputLabel>Algorithm</InputLabel>
             <Select
@@ -529,7 +529,7 @@ const Home = () => {
             </Select>
           </FormControl>
         </Grid>
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={3}>
           <FormControl variant="outlined" fullWidth>
             <InputLabel>Product Name</InputLabel>
             <Select
@@ -545,7 +545,7 @@ const Home = () => {
             </Select>
           </FormControl>
         </Grid>
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={3}>
           <FormControl variant="outlined" fullWidth>
             <InputLabel>Product Config</InputLabel>
             <Select
@@ -564,7 +564,7 @@ const Home = () => {
         <Grid
           item
           xs={12}
-          md={4}
+          md={3}
           style={{ display: "flex", justifyContent: "center" }}
         >
           <Button
