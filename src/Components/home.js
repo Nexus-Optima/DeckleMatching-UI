@@ -24,6 +24,7 @@ import {
   List,
   ListItem,
   Container,
+  Grid,
 } from "@mui/material";
 import { CloudUpload as CloudUploadIcon } from "@mui/icons-material";
 import axios from "axios";
@@ -514,59 +515,72 @@ const Home = () => {
 
   const renderOutputSection = () => (
     <div>
-      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-        <FormControl variant="outlined" style={{ width: 300 }}>
-          <InputLabel>Algorithm</InputLabel>
-          <Select
-            value={algorithm}
-            onChange={(e) => setAlgorithm(e.target.value)}
-            label="Algorithm"
-          >
-            <MenuItem value="knives">Knives</MenuItem>
-            <MenuItem value="wastage">Wastage</MenuItem>
-          </Select>
-        </FormControl>
-        <FormControl variant="outlined" style={{ width: 300 }}>
-          <InputLabel>Product Name</InputLabel>
-          <Select
-            value={productName}
-            onChange={(e) => setProductName(e.target.value)}
-            label="Product Name"
-          >
-            {productTypes.map((type, index) => (
-              <MenuItem key={index} value={type}>
-                {type}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <FormControl variant="outlined" style={{ width: 300 }}>
-          <InputLabel>Product Config</InputLabel>
-          <Select
-            value={productConfig}
-            onChange={(e) => setProductConfig(e.target.value)}
-            label="Product Config"
-          >
-            {productConfigInput.map((config, index) => (
-              <MenuItem key={index} value={config}>
-                {config}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={fetchData}
-          disabled={fetching}
-          style={{ width: 200 }}
-          startIcon={fetching ? <CircularProgress size={24} /> : null}
+      <Grid container spacing={2} alignItems="center" justifyContent="center">
+        <Grid item xs={12} md={4}>
+          <FormControl variant="outlined" fullWidth>
+            <InputLabel>Algorithm</InputLabel>
+            <Select
+              value={algorithm}
+              onChange={(e) => setAlgorithm(e.target.value)}
+              label="Algorithm"
+            >
+              <MenuItem value="knives">Knives</MenuItem>
+              <MenuItem value="wastage">Wastage</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <FormControl variant="outlined" fullWidth>
+            <InputLabel>Product Name</InputLabel>
+            <Select
+              value={productName}
+              onChange={(e) => setProductName(e.target.value)}
+              label="Product Name"
+            >
+              {productTypes.map((type, index) => (
+                <MenuItem key={index} value={type}>
+                  {type}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <FormControl variant="outlined" fullWidth>
+            <InputLabel>Product Config</InputLabel>
+            <Select
+              value={productConfig}
+              onChange={(e) => setProductConfig(e.target.value)}
+              label="Product Config"
+            >
+              {productConfigInput.map((config, index) => (
+                <MenuItem key={index} value={config}>
+                  {config}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid
+          item
+          xs={12}
+          md={4}
+          style={{ display: "flex", justifyContent: "center" }}
         >
-          {fetching ? "Fetching..." : "Fetch Data"}
-        </Button>
-      </div>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={fetchData}
+            disabled={fetching}
+            style={{ width: "100%" }}
+            startIcon={fetching ? <CircularProgress size={24} /> : null}
+          >
+            {fetching ? "Fetching..." : "Fetch Data"}
+          </Button>
+        </Grid>
+      </Grid>
       {dataFetched && (
-        <Box sx={{}}>
+        <Box sx={{ mt: 2 }}>
           <Tabs
             value={tabValue}
             onChange={handleChangeTab}
@@ -581,7 +595,6 @@ const Home = () => {
           </TabPanel>
           <TabPanel value={tabValue} index={1}>
             {renderPlanTable(planData, "Plan Data", true)}
-            {/* {planData.map((row, index) => renderPlanTable(row, `Plan Data Row ${index + 1}`, true))} */}
           </TabPanel>
           <TabPanel value={tabValue} index={2}>
             {renderTable(customerData, "Customer Data", false)}
@@ -590,6 +603,7 @@ const Home = () => {
       )}
     </div>
   );
+
   const dragOverStyles = `
     .drag-over {
       border: 2px solid #000;
@@ -721,8 +735,10 @@ const Home = () => {
                 justifyContent: "center",
                 alignItems: "center",
                 height: "100vh",
-                width: "100vw",
-                paddingLeft: "150px",
+                width: "100%",
+                padding: "0",
+                boxSizing: "border-box",
+                paddingLeft: "calc(10% + 16px)",
               }}
             >
               <Container
@@ -730,10 +746,11 @@ const Home = () => {
                   padding: "20px",
                   position: "relative",
                   height: "calc(100vh - 64px)",
-                  maxWidth: "1000px",
+                  maxWidth: "90%",
                   width: "100%",
                   textAlign: "center",
                   transform: "translateY(-5%)",
+                  boxSizing: "border-box",
                 }}
               >
                 {selectedOption === "file upload" && renderUploadSection()}
