@@ -93,11 +93,17 @@ const Home = () => {
       const workbook = XLSX.read(data, { type: "array" });
 
       const targetSheetName = "PENDING";
-      if (workbook.SheetNames.includes(targetSheetName)) {
-        const worksheet = XLSX.utils.sheet_to_json(
-          workbook.Sheets[targetSheetName],
-          { header: 1 }
-        );
+      // Normalize target sheet name
+      const normalizedTargetSheetName = targetSheetName.trim().toLowerCase();
+
+      // Normalize workbook sheet names
+      const normalizedSheetNames = workbook.SheetNames.map(name => name.trim().toLowerCase());
+
+      // Check if the normalized target sheet name exists
+      const sheetIndex = normalizedSheetNames.indexOf(normalizedTargetSheetName);
+      if (sheetIndex !== -1) {
+        const actualSheetName = workbook.SheetNames[sheetIndex];
+        const worksheet = XLSX.utils.sheet_to_json(workbook.Sheets[actualSheetName], { header: 1 });
         const headers = worksheet[0];
         const rows = worksheet.slice(1).map((row) => {
           const rowData = {};
