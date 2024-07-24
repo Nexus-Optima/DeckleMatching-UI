@@ -242,9 +242,7 @@ const Home = () => {
     return (
       <ThemeProvider theme={theme}>
         <div>
-          <Typography variant="h6" style={{}}>
-            {title}
-          </Typography>
+          <Typography variant="h6">{title}</Typography>
           <TableContainer
             component={Paper}
             style={{
@@ -308,7 +306,13 @@ const Home = () => {
             </Table>
           </TableContainer>
           {title === "Original File" && (
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
               <Button
                 variant="contained"
                 color="secondary"
@@ -317,6 +321,11 @@ const Home = () => {
               >
                 Upload Modified File
               </Button>
+              {message && (
+                <Alert severity={message.type} style={{ marginTop: "10px" }}>
+                  {message.text}
+                </Alert>
+              )}
               <Button
                 variant="contained"
                 color="secondary"
@@ -500,21 +509,13 @@ const Home = () => {
       )}
       {originalData.length > 0 &&
         renderTable(originalData, "Original File", false)}
-      {message && (
-        <div style={{ marginTop: "20px" }}>
-          <Alert severity={message.type}>{message.text}</Alert>
-        </div>
-      )}
     </div>
   );
 
   const renderOutputSection = () => (
     <div>
-      <div style={{}}>
-        <FormControl
-          variant="outlined"
-          style={{ marginRight: "10px", width: 300 }}
-        >
+      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        <FormControl variant="outlined" style={{ width: 300 }}>
           <InputLabel>Algorithm</InputLabel>
           <Select
             value={algorithm}
@@ -525,10 +526,7 @@ const Home = () => {
             <MenuItem value="wastage">Wastage</MenuItem>
           </Select>
         </FormControl>
-        <FormControl
-          variant="outlined"
-          style={{ marginRight: "10px", minWidth: 300 }}
-        >
+        <FormControl variant="outlined" style={{ width: 300 }}>
           <InputLabel>Product Name</InputLabel>
           <Select
             value={productName}
@@ -542,10 +540,7 @@ const Home = () => {
             ))}
           </Select>
         </FormControl>
-        <FormControl
-          variant="outlined"
-          style={{ marginRight: "10px", minWidth: 300 }}
-        >
+        <FormControl variant="outlined" style={{ width: 300 }}>
           <InputLabel>Product Config</InputLabel>
           <Select
             value={productConfig}
@@ -612,6 +607,7 @@ const Home = () => {
             alignItems: "center",
             justifyContent: "center",
             height: "100vh",
+            textAlign: "center",
             paddingBottom: "35%",
           }}
         >
@@ -634,7 +630,7 @@ const Home = () => {
       ) : (
         <>
           <Header />
-          <div style={{ display: "flex" }}>
+          <div style={{ display: "flex", height: "calc(100vh - 64px)" }}>
             <Drawer
               variant="permanent"
               open
@@ -719,18 +715,31 @@ const Home = () => {
                 </List>
               </Box>
             </Drawer>
-            <Container
+            <div
               style={{
-                flexGrow: 1,
-                padding: "20px",
-                marginLeft: "150px",
-                height: "calc(100vh - 64px)",
-                position: "relative",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "100vh",
+                width: "100vw",
+                paddingLeft: "150px",
               }}
             >
-              {selectedOption === "file upload" && renderUploadSection()}
-              {selectedOption === "results" && renderOutputSection()}
-            </Container>
+              <Container
+                style={{
+                  padding: "20px",
+                  position: "relative",
+                  height: "calc(100vh - 64px)",
+                  maxWidth: "1000px",
+                  width: "100%",
+                  textAlign: "center",
+                  transform: "translateY(-5%)",
+                }}
+              >
+                {selectedOption === "file upload" && renderUploadSection()}
+                {selectedOption === "results" && renderOutputSection()}
+              </Container>
+            </div>
           </div>
         </>
       )}
