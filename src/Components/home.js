@@ -24,6 +24,7 @@ import {
   List,
   ListItem,
   Container,
+  Grid,
 } from "@mui/material";
 import { CloudUpload as CloudUploadIcon } from "@mui/icons-material";
 import axios from "axios";
@@ -142,6 +143,7 @@ const Home = () => {
         const productConfigInput = response.data.data.product_config;
         setProductConfigInput(productConfigInput);
         setMessage({ type: "success", text: "File uploaded successfully!" });
+        setSelectedOption("results");
       } else {
         setUnauthorized(true);
       }
@@ -242,9 +244,7 @@ const Home = () => {
     return (
       <ThemeProvider theme={theme}>
         <div>
-          <Typography variant="h6" style={{}}>
-            {title}
-          </Typography>
+          <Typography variant="h6">{title}</Typography>
           <TableContainer
             component={Paper}
             style={{
@@ -308,7 +308,13 @@ const Home = () => {
             </Table>
           </TableContainer>
           {title === "Original File" && (
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
               <Button
                 variant="contained"
                 color="secondary"
@@ -317,6 +323,11 @@ const Home = () => {
               >
                 Upload Modified File
               </Button>
+              {message && (
+                <Alert severity={message.type} style={{ marginTop: "10px" }}>
+                  {message.text}
+                </Alert>
+              )}
               <Button
                 variant="contained"
                 color="secondary"
@@ -500,78 +511,77 @@ const Home = () => {
       )}
       {originalData.length > 0 &&
         renderTable(originalData, "Original File", false)}
-      {message && (
-        <div style={{ marginTop: "20px" }}>
-          <Alert severity={message.type}>{message.text}</Alert>
-        </div>
-      )}
     </div>
   );
 
   const renderOutputSection = () => (
     <div>
-      <div style={{}}>
-        <FormControl
-          variant="outlined"
-          style={{ marginRight: "10px", width: 300 }}
+      <Grid container spacing={2} alignItems="center" justifyContent="center">
+        <Grid item xs={12} md={3}>
+          <FormControl variant="outlined" fullWidth>
+            <InputLabel>Algorithm</InputLabel>
+            <Select
+              value={algorithm}
+              onChange={(e) => setAlgorithm(e.target.value)}
+              label="Algorithm"
+            >
+              <MenuItem value="knives">Knives</MenuItem>
+              <MenuItem value="wastage">Wastage</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} md={3}>
+          <FormControl variant="outlined" fullWidth>
+            <InputLabel>Product Name</InputLabel>
+            <Select
+              value={productName}
+              onChange={(e) => setProductName(e.target.value)}
+              label="Product Name"
+            >
+              {productTypes.map((type, index) => (
+                <MenuItem key={index} value={type}>
+                  {type}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} md={3}>
+          <FormControl variant="outlined" fullWidth>
+            <InputLabel>Product Config</InputLabel>
+            <Select
+              value={productConfig}
+              onChange={(e) => setProductConfig(e.target.value)}
+              label="Product Config"
+            >
+              {productConfigInput.map((config, index) => (
+                <MenuItem key={index} value={config}>
+                  {config}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid
+          item
+          xs={12}
+          md={3}
+          style={{ display: "flex", justifyContent: "center" }}
         >
-          <InputLabel>Algorithm</InputLabel>
-          <Select
-            value={algorithm}
-            onChange={(e) => setAlgorithm(e.target.value)}
-            label="Algorithm"
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={fetchData}
+            disabled={fetching}
+            style={{ width: "100%" }}
+            startIcon={fetching ? <CircularProgress size={24} /> : null}
           >
-            <MenuItem value="knives">Knives</MenuItem>
-            <MenuItem value="wastage">Wastage</MenuItem>
-          </Select>
-        </FormControl>
-        <FormControl
-          variant="outlined"
-          style={{ marginRight: "10px", minWidth: 300 }}
-        >
-          <InputLabel>Product Name</InputLabel>
-          <Select
-            value={productName}
-            onChange={(e) => setProductName(e.target.value)}
-            label="Product Name"
-          >
-            {productTypes.map((type, index) => (
-              <MenuItem key={index} value={type}>
-                {type}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <FormControl
-          variant="outlined"
-          style={{ marginRight: "10px", minWidth: 300 }}
-        >
-          <InputLabel>Product Config</InputLabel>
-          <Select
-            value={productConfig}
-            onChange={(e) => setProductConfig(e.target.value)}
-            label="Product Config"
-          >
-            {productConfigInput.map((config, index) => (
-              <MenuItem key={index} value={config}>
-                {config}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={fetchData}
-          disabled={fetching}
-          style={{ width: 200 }}
-          startIcon={fetching ? <CircularProgress size={24} /> : null}
-        >
-          {fetching ? "Fetching..." : "Fetch Data"}
-        </Button>
-      </div>
+            {fetching ? "Fetching..." : "Fetch Data"}
+          </Button>
+        </Grid>
+      </Grid>
       {dataFetched && (
-        <Box sx={{}}>
+        <Box sx={{ mt: 2 }}>
           <Tabs
             value={tabValue}
             onChange={handleChangeTab}
@@ -586,7 +596,6 @@ const Home = () => {
           </TabPanel>
           <TabPanel value={tabValue} index={1}>
             {renderPlanTable(planData, "Plan Data", true)}
-            {/* {planData.map((row, index) => renderPlanTable(row, `Plan Data Row ${index + 1}`, true))} */}
           </TabPanel>
           <TabPanel value={tabValue} index={2}>
             {renderTable(customerData, "Customer Data", false)}
@@ -595,6 +604,7 @@ const Home = () => {
       )}
     </div>
   );
+
   const dragOverStyles = `
     .drag-over {
       border: 2px solid #000;
@@ -612,6 +622,7 @@ const Home = () => {
             alignItems: "center",
             justifyContent: "center",
             height: "100vh",
+            textAlign: "center",
             paddingBottom: "35%",
           }}
         >
@@ -634,7 +645,7 @@ const Home = () => {
       ) : (
         <>
           <Header />
-          <div style={{ display: "flex" }}>
+          <div style={{ display: "flex", height: "calc(100vh - 64px)" }}>
             <Drawer
               variant="permanent"
               open
@@ -719,18 +730,34 @@ const Home = () => {
                 </List>
               </Box>
             </Drawer>
-            <Container
+            <div
               style={{
-                flexGrow: 1,
-                padding: "20px",
-                marginLeft: "150px",
-                height: "calc(100vh - 64px)",
-                position: "relative",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "100vh",
+                width: "100%",
+                padding: "0",
+                boxSizing: "border-box",
+                paddingLeft: "calc(10% + 16px)",
               }}
             >
-              {selectedOption === "file upload" && renderUploadSection()}
-              {selectedOption === "results" && renderOutputSection()}
-            </Container>
+              <Container
+                style={{
+                  padding: "20px",
+                  position: "relative",
+                  height: "calc(100vh - 64px)",
+                  maxWidth: "90%",
+                  width: "100%",
+                  textAlign: "center",
+                  transform: "translateY(-5%)",
+                  boxSizing: "border-box",
+                }}
+              >
+                {selectedOption === "file upload" && renderUploadSection()}
+                {selectedOption === "results" && renderOutputSection()}
+              </Container>
+            </div>
           </div>
         </>
       )}
