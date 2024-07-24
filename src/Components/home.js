@@ -143,6 +143,7 @@ const Home = () => {
         const productConfigInput = response.data.data.product_config;
         setProductConfigInput(productConfigInput);
         setMessage({ type: "success", text: "File uploaded successfully!" });
+        setSelectedOption("results");
       } else {
         setUnauthorized(true);
       }
