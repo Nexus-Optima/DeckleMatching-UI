@@ -1,0 +1,12 @@
+.custom-switch .MuiSwitch-switchBase.Mui-checked {
+    color: black;
+  }
+  
+  .custom-switch .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track {
+    background-color: black;
+  }
+  
+  .custom-switch .MuiSwitch-track {
+    background-color: #bdbdbd;
+  }
+  
