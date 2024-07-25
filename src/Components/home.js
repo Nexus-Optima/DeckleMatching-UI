@@ -34,6 +34,9 @@ import theme from "../Themes/themes";
 import FileUploadIcon from "@mui/icons-material/FileUpload";
 import OutputIcon from "@mui/icons-material/Output";
 import logo from "../Images/abc_image.png";
+import Switch from "@mui/material/Switch";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import "../Styles/Home.css";
 
 const Home = () => {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -116,9 +119,11 @@ const Home = () => {
     reader.readAsArrayBuffer(file);
   };
 
-  const handleDropdownChange = (e, rowIndex) => {
+  const handleToggleChange = (e, rowIndex) => {
     const updatedData = [...originalData];
-    updatedData[rowIndex]["Option"] = e.target.value;
+    updatedData[rowIndex]["Option"] = e.target.checked
+      ? "MustMake"
+      : "Optional";
     setOriginalData(updatedData);
   };
 
@@ -234,6 +239,7 @@ const Home = () => {
       }}
     />
   );
+
   const renderTable = (data, title, isEditable) => {
     if (!data || data.length === 0) return null;
     let columns = Object.keys(data[0]);
@@ -285,17 +291,25 @@ const Home = () => {
                       >
                         {isEditable && column >= 0 && column <= 11 ? (
                           renderEditableCell(rowIndex, column, row[column])
-                        ) : column === "Option" ? (
-                          <Select
-                            value={row[column]}
-                            onChange={(e) => handleDropdownChange(e, rowIndex)}
-                            variant="outlined"
-                            size="small"
-                            fullWidth
-                          >
-                            <MenuItem value="MustMake">Must Make</MenuItem>
-                            <MenuItem value="Optional">Optional</MenuItem>
-                          </Select>
+                        ) : column === "Option" && title !== "Customer Data" ? (
+                          <FormControlLabel
+                            control={
+                              <Switch
+                                checked={row[column] === "MustMake"}
+                                onChange={(e) =>
+                                  handleToggleChange(e, rowIndex)
+                                }
+                                name={`toggle-${rowIndex}`}
+                                className="custom-switch"
+                              />
+                            }
+                            label={
+                              row[column] === "MustMake"
+                                ? "Must Make"
+                                : "Optional"
+                            }
+                            labelPlacement="start"
+                          />
                         ) : (
                           row[column]
                         )}
@@ -407,16 +421,24 @@ const Home = () => {
                         {isEditable && column >= 0 && column <= 11 ? (
                           renderEditableCell(rowIndex, column, row[column])
                         ) : column === "Option" ? (
-                          <Select
-                            value={row[column]}
-                            onChange={(e) => handleDropdownChange(e, rowIndex)}
-                            variant="outlined"
-                            size="small"
-                            fullWidth
-                          >
-                            <MenuItem value="MustMake">Must Make</MenuItem>
-                            <MenuItem value="Optional">Optional</MenuItem>
-                          </Select>
+                          <FormControlLabel
+                            control={
+                              <Switch
+                                checked={row[column] === "MustMake"}
+                                onChange={(e) =>
+                                  handleToggleChange(e, rowIndex)
+                                }
+                                name={`toggle-${rowIndex}`}
+                                className="custom-switch"
+                              />
+                            }
+                            label={
+                              row[column] === "MustMake"
+                                ? "Must Make"
+                                : "Optional"
+                            }
+                            labelPlacement="start"
+                          />
                         ) : (
                           row[column]
                         )}
@@ -503,7 +525,12 @@ const Home = () => {
       {selectedFile && (
         <Typography
           variant="body1"
-          style={{ marginTop: "10px", textAlign: "center",fontWeight:"bold",fontSize:"3vh" }}
+          style={{
+            marginTop: "10px",
+            textAlign: "center",
+            fontWeight: "bold",
+            fontSize: "3vh",
+          }}
         >
           {selectedFile.name}
         </Typography>
