@@ -129,7 +129,7 @@ const Home = () => {
 
     try {
       if (document.referrer.startsWith(mainDomain)) {
-        setMessage({ type: "info", text: "Uploading file..." });
+        setMessage({ type: "info", text: "Getting Best Results..." });
         const response = await axios.post(
           `${process.env.REACT_APP_API_DOMAIN}/api/upload`,
           { data: originalData },
@@ -237,14 +237,13 @@ const Home = () => {
   const renderTable = (data, title, isEditable) => {
     if (!data || data.length === 0) return null;
     let columns = Object.keys(data[0]);
-    if (title === "Original File") {
+    if (title === selectedFile.name) {
       columns = ["Option", ...columns.filter((col) => col !== "Option")];
     }
 
     return (
       <ThemeProvider theme={theme}>
         <div>
-          <Typography variant="h6">{title}</Typography>
           <TableContainer
             component={Paper}
             style={{
@@ -307,7 +306,7 @@ const Home = () => {
               </TableBody>
             </Table>
           </TableContainer>
-          {title === "Original File" && (
+          {title === selectedFile.name && (
             <div
               style={{
                 display: "flex",
@@ -338,7 +337,7 @@ const Home = () => {
               </Button>
             </div>
           )}
-          {title !== "Original File" && (
+          {title !== selectedFile.name && (
             <Button
               variant="contained"
               color="secondary"
@@ -428,7 +427,7 @@ const Home = () => {
               </TableBody>
             </Table>
           </TableContainer>
-          {title === "Original File" && (
+          {title === selectedFile.name && (
             <Button
               variant="contained"
               color="secondary"
@@ -438,7 +437,7 @@ const Home = () => {
               Upload Modified File
             </Button>
           )}
-          {title !== "Original File" && (
+          {title !== selectedFile.name && (
             <Button
               variant="contained"
               color="secondary"
@@ -504,13 +503,13 @@ const Home = () => {
       {selectedFile && (
         <Typography
           variant="body1"
-          style={{ marginTop: "10px", textAlign: "center" }}
+          style={{ marginTop: "10px", textAlign: "center",fontWeight:"bold",fontSize:"3vh" }}
         >
           {selectedFile.name}
         </Typography>
       )}
       {originalData.length > 0 &&
-        renderTable(originalData, "Original File", false)}
+        renderTable(originalData, selectedFile.name, false)}
     </div>
   );
 
