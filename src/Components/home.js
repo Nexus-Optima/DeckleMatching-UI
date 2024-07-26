@@ -37,6 +37,8 @@ import logo from "../Images/abc_image.png";
 import Switch from "@mui/material/Switch";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import "../Styles/Home.css";
+import Checkbox from "@mui/material/Checkbox";
+import FormGroup from "@mui/material/FormGroup";
 
 const Home = () => {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -61,6 +63,7 @@ const Home = () => {
     process.env.REACT_APP_MAIN_DOMAIN
   );
   const [dragOver, setDragOver] = useState(false);
+  const [selectAll, setSelectAll] = useState(false);
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -130,6 +133,16 @@ const Home = () => {
     updatedData[rowIndex]["Option"] = e.target.checked
       ? "MustMake"
       : "Optional";
+    setOriginalData(updatedData);
+  };
+
+  const handleSelectAllChange = (event) => {
+    const checked = event.target.checked;
+    setSelectAll(checked);
+    const updatedData = originalData.map((row) => ({
+      ...row,
+      Option: checked ? "MustMake" : "Optional",
+    }));
     setOriginalData(updatedData);
   };
 
@@ -277,9 +290,50 @@ const Home = () => {
                         fontWeight: "bold",
                         background: "black",
                         color: "white",
+                        textAlign: column === "Option" ? "center" : "left",
                       }}
                     >
-                      {column}
+                      {column === "Option" && title !== "Customer Data" ? (
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                          }}
+                        >
+                          <Typography
+                            variant="body2"
+                            style={{
+                              color: "white",
+                              marginBottom: "4px",
+                              fontWeight: "bold",
+                            }}
+                          >
+                            Option
+                          </Typography>
+                          <FormGroup>
+                            <FormControlLabel
+                              control={
+                                <Checkbox
+                                  checked={selectAll}
+                                  onChange={handleSelectAllChange}
+                                  name="selectAll"
+                                  sx={{
+                                    "& .MuiSvgIcon-root": {
+                                      fontSize: 16,
+                                      color: "white",
+                                    },
+                                  }}
+                                />
+                              }
+                              label="Select All"
+                              sx={{ marginRight: 1.3 }}
+                            />
+                          </FormGroup>
+                        </div>
+                      ) : (
+                        column
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
@@ -551,11 +605,19 @@ const Home = () => {
       <Grid container spacing={2} alignItems="center" justifyContent="center">
         <Grid item xs={12} md={3}>
           <FormControl variant="outlined" fullWidth>
-            <InputLabel>Algorithm</InputLabel>
+            <InputLabel style={{ color: "black" }}>Algorithm</InputLabel>
             <Select
               value={algorithm}
               onChange={(e) => setAlgorithm(e.target.value)}
               label="Algorithm"
+              sx={{
+                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "black",
+                },
+                "&.Mui-focused .MuiInputLabel-outlined": {
+                  color: "black",
+                },
+              }}
             >
               <MenuItem value="knives">Knives</MenuItem>
               <MenuItem value="wastage">Wastage</MenuItem>
@@ -564,11 +626,19 @@ const Home = () => {
         </Grid>
         <Grid item xs={12} md={3}>
           <FormControl variant="outlined" fullWidth>
-            <InputLabel>Product Name</InputLabel>
+            <InputLabel style={{ color: "black" }}>Product Name</InputLabel>
             <Select
               value={productName}
               onChange={(e) => setProductName(e.target.value)}
               label="Product Name"
+              sx={{
+                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "black",
+                },
+                "&.Mui-focused .MuiInputLabel-outlined": {
+                  color: "black",
+                },
+              }}
             >
               {productTypes.map((type, index) => (
                 <MenuItem key={index} value={type}>
@@ -580,11 +650,19 @@ const Home = () => {
         </Grid>
         <Grid item xs={12} md={3}>
           <FormControl variant="outlined" fullWidth>
-            <InputLabel>Product Config</InputLabel>
+            <InputLabel style={{ color: "black" }}>Product Config</InputLabel>
             <Select
               value={productConfig}
               onChange={(e) => setProductConfig(e.target.value)}
               label="Product Config"
+              sx={{
+                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                  borderColor: "black",
+                },
+                "&.Mui-focused .MuiInputLabel-outlined": {
+                  color: "black",
+                },
+              }}
             >
               {productConfigInput.map((config, index) => (
                 <MenuItem key={index} value={config}>
@@ -618,6 +696,17 @@ const Home = () => {
             value={tabValue}
             onChange={handleChangeTab}
             aria-label="plan and customer data tabs"
+            sx={{
+              "& .MuiTab-root": {
+                color: "black",
+                "&.Mui-selected": {
+                  color: "black",
+                },
+              },
+              "& .MuiTabs-indicator": {
+                backgroundColor: "black",
+              },
+            }}
           >
             <Tab label="Metric Data" />
             <Tab label="Plan Data" />
