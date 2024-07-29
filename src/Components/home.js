@@ -255,9 +255,28 @@ const Home = () => {
 
   const renderTable = (data, title, isEditable) => {
     if (!data || data.length === 0) return null;
+
+    const columnsToDisplay = [
+      "Option",
+      "Width",
+      "Rolls",
+      "Material",
+      "ID",
+      "OD",
+      "Lenght",
+      "Item No.",
+      "Sales Orde",
+      "Buyer Name",
+      "Consignee Name",
+      "    Pend. Prod",
+      "Micron",
+      "DENSITY",
+    ];
+
     let columns = Object.keys(data[0]);
     if (title === selectedFile.name) {
       columns = ["Option", ...columns.filter((col) => col !== "Option")];
+      columns = columns.filter((column) => columnsToDisplay.includes(column));
     }
 
     return (
