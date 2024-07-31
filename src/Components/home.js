@@ -262,7 +262,7 @@ const Home = () => {
 
   const renderTable = (data, title, isEditable) => {
     if (!data || data.length === 0) return null;
-    
+
     const columnsToDisplay = [
       "Option",
       "Width",
@@ -275,7 +275,7 @@ const Home = () => {
       "Sales Orde",
       "Buyer Name",
       "Consignee Name",
-      "Pend. Prod",
+      "    Pend. Prod",
       "Micron",
       "DENSITY",
     ];
