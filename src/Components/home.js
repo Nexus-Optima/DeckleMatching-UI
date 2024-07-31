@@ -119,7 +119,14 @@ const Home = () => {
           rowData["Option"] = "Optional";
           return rowData;
         });
-        setOriginalData(rows);
+
+        const filteredRows = rows.filter((row) =>
+          headers.some(
+            (header) => row[header] !== undefined && row[header] !== ""
+          )
+        );
+
+        setOriginalData(filteredRows);
         setDataFetched(false);
       } else {
         setMessage(`Sheet "${targetSheetName}" not found in the Excel file.`);
