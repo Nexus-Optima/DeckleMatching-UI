@@ -365,44 +365,54 @@ const Home = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {data.map((row, rowIndex) => (
-                  <TableRow key={rowIndex}>
-                    {columns.map((column, cellIndex) => (
-                      <TableCell
-                        key={cellIndex}
-                        style={{
-                          border: "1px solid #ccc",
-                          padding: 5, // Remove padding from TableCell
-                        }}
-                      >
-                        {isEditable && column >= 0 && column <= 11 ? (
-                          renderEditableCell(rowIndex, column, row[column])
-                        ) : column === "Option" && title !== "Customer Data" ? (
-                          <FormControlLabel
-                            control={
-                              <Switch
-                                checked={row[column] === "MustMake"}
-                                onChange={(e) =>
-                                  handleToggleChange(e, rowIndex)
-                                }
-                                name={`toggle-${rowIndex}`}
-                                className="custom-switch"
-                              />
-                            }
-                            label={
-                              row[column] === "MustMake"
-                                ? "Must Make"
-                                : "Optional"
-                            }
-                            labelPlacement="start"
-                          />
-                        ) : (
-                          row[column]
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))}
+                {data.map((row, rowIndex) => {
+                  const targetMinusActual =
+                    (row["TARGET ROLL"] || 0) - (row["ACTUAL ROLL"] || 0);
+                  const rowStyle =
+                    targetMinusActual > 0 ? { backgroundColor: "#f0f4c3" } : {};
+
+                  return (
+                    <TableRow key={rowIndex} style={rowStyle}>
+                      {columns.map((column, cellIndex) => (
+                        <TableCell
+                          key={cellIndex}
+                          style={{
+                            border: "1px solid #ccc",
+                            padding: 5, // Remove padding from TableCell
+                          }}
+                        >
+                          {isEditable && column >= 0 && column <= 11 ? (
+                            renderEditableCell(rowIndex, column, row[column])
+                          ) : column === "Option" &&
+                            title !== "Customer Data" ? (
+                            <FormControlLabel
+                              control={
+                                <Switch
+                                  checked={row[column] === "MustMake"}
+                                  onChange={(e) =>
+                                    handleToggleChange(e, rowIndex)
+                                  }
+                                  name={`toggle-${rowIndex}`}
+                                  className="custom-switch"
+                                />
+                              }
+                              label={
+                                row[column] === "MustMake"
+                                  ? "Must Make"
+                                  : "Optional"
+                              }
+                              labelPlacement="start"
+                            />
+                          ) : column === "PENDING" ? (
+                            row[column].toFixed(2)
+                          ) : (
+                            row[column]
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </TableContainer>
