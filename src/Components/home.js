@@ -262,8 +262,7 @@ const Home = () => {
 
   const renderTable = (data, title, isEditable) => {
     if (!data || data.length === 0) return null;
-    console.log(data);
-
+    
     const columnsToDisplay = [
       "Option",
       "Width",
