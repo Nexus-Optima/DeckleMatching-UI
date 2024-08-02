@@ -64,6 +64,9 @@ const Home = () => {
   );
   const [dragOver, setDragOver] = useState(false);
   const [selectAll, setSelectAll] = useState(false);
+  const [additionalColumnsList, setAdditionalColumnsList] = useState([]);
+  const [isHovered, setIsHovered] = useState(false);
+  const [InitialData, setData] = useState([]);
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -247,14 +250,14 @@ const Home = () => {
     <TextField
       value={value}
       onChange={(e) => handleInputChange(e, rowIndex, columnName)}
-      type="text"
       variant="outlined"
       size="small"
       inputProps={{
         style: {
-          width: value / 16,
-          fontSize: "14px", // Adjust the font size here
-          padding: 5, // Remove padding
+          width: "40px",
+          fontSize: "14px",
+          textAlign: "left",
+          padding: "2px 4px",
         },
       }}
     />
@@ -458,17 +461,45 @@ const Home = () => {
 
   const renderPlanTable = (data, title, isEditable) => {
     if (!data || data.length === 0) return null;
-    const additionalColumns = ["Total width", "Trim", "Sets"]; // Add any additional specific columns here
+
+    const additionalColumns = ["Total width", "Trim", "Sets"];
     const numericalColumns = Object.keys(data[0]).filter((key) =>
       /^\d+$/.test(key)
-    ); // Selects columns with only numbers
-    const columnsToShow = [...additionalColumns, ...numericalColumns];
+    );
+
+    const handleAddColumn = () => {
+      const existingColumnNumbers = [
+        ...numericalColumns
+          .map((col) => parseInt(col))
+          .filter((num) => !isNaN(num)),
+        ...additionalColumnsList
+          .map((col) => parseInt(col))
+          .filter((num) => !isNaN(num)),
+      ];
+
+      const newColumnNumber =
+        existingColumnNumbers.length > 0
+          ? Math.max(...existingColumnNumbers) + 1
+          : 1;
+
+      if (existingColumnNumbers.includes(newColumnNumber)) {
+        console.error("Duplicate column");
+        return;
+      }
+
+      setAdditionalColumnsList((prev) => [...prev, `${newColumnNumber}`]);
+    };
+
+    const columnsToShow = [
+      ...additionalColumns,
+      ...numericalColumns,
+      ...additionalColumnsList,
+    ].filter((column, index, self) => self.indexOf(column) === index);
+
     return (
       <ThemeProvider theme={theme}>
         <div>
-          <Typography variant="h6" style={{}}>
-            {title}
-          </Typography>
+          <Typography variant="h6" />
           <TableContainer
             component={Paper}
             style={{
@@ -478,6 +509,8 @@ const Home = () => {
               height: "55vh",
               width: "100%",
             }}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
           >
             <Table stickyHeader>
               <TableHead>
@@ -495,6 +528,25 @@ const Home = () => {
                       {column}
                     </TableCell>
                   ))}
+                  {isHovered && (
+                    <Button
+                      variant="contained"
+                      color="secondary"
+                      onClick={handleAddColumn}
+                      sx={{
+                        width: "30px",
+                        height: "80px",
+                        minWidth: "auto",
+                        padding: "0",
+                        fontSize: "16px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      +
+                    </Button>
+                  )}
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -505,10 +557,12 @@ const Home = () => {
                         key={cellIndex}
                         style={{
                           border: "1px solid #ccc",
-                          padding: 5, // Remove padding from TableCell
+                          padding: 5,
                         }}
                       >
-                        {isEditable && column >= 0 && column <= 11 ? (
+                        {isEditable &&
+                        column >= 0 &&
+                        column <= columnsToShow.length ? (
                           renderEditableCell(rowIndex, column, row[column])
                         ) : column === "Option" ? (
                           <FormControlLabel
