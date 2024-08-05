@@ -65,8 +65,6 @@ const Home = () => {
   const [dragOver, setDragOver] = useState(false);
   const [selectAll, setSelectAll] = useState(false);
   const [additionalColumnsList, setAdditionalColumnsList] = useState([]);
-  const [isHovered, setIsHovered] = useState(false);
-  const [InitialData, setData] = useState([]);
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -509,8 +507,6 @@ const Home = () => {
               height: "55vh",
               width: "100%",
             }}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
           >
             <Table stickyHeader>
               <TableHead>
@@ -528,7 +524,6 @@ const Home = () => {
                       {column}
                     </TableCell>
                   ))}
-                  {isHovered && (
                     <Button
                       variant="contained"
                       color="secondary"
@@ -546,7 +541,6 @@ const Home = () => {
                     >
                       +
                     </Button>
-                  )}
                 </TableRow>
               </TableHead>
               <TableBody>
