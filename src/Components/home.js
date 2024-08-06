@@ -234,6 +234,9 @@ const Home = () => {
         (sum, key) => sum + (parseFloat(updatedPlanData[rowIndex][key]) || 0),
         0
       );
+
+    updatedPlanData[rowIndex]["Trim"] =
+      8700 - updatedPlanData[rowIndex]["Total width"];
     setPlanData(updatedPlanData);
   };
 
@@ -488,6 +491,21 @@ const Home = () => {
       setAdditionalColumnsList((prev) => [...prev, `${newColumnNumber}`]);
     };
 
+    const handleAddRow = () => {
+      const columns = [
+        ...additionalColumns,
+        ...Object.keys(planData[0] || {}),
+        ...additionalColumnsList,
+      ];
+
+      const newRow = columns.reduce((acc, column) => {
+        acc[column] = "";
+        return acc;
+      }, {});
+
+      setPlanData((prevData) => [...prevData, newRow]);
+    };
+
     const columnsToShow = [
       ...additionalColumns,
       ...numericalColumns,
@@ -524,23 +542,23 @@ const Home = () => {
                       {column}
                     </TableCell>
                   ))}
-                    <Button
-                      variant="contained"
-                      color="secondary"
-                      onClick={handleAddColumn}
-                      sx={{
-                        width: "30px",
-                        height: "80px",
-                        minWidth: "auto",
-                        padding: "0",
-                        fontSize: "16px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      +
-                    </Button>
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    onClick={handleAddColumn}
+                    sx={{
+                      width: "30px",
+                      height: "60px",
+                      minWidth: "auto",
+                      padding: "0",
+                      fontSize: "16px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    +
+                  </Button>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -584,6 +602,23 @@ const Home = () => {
                     ))}
                   </TableRow>
                 ))}
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  onClick={handleAddRow}
+                  sx={{
+                    width: "130px",
+                    height: "30px",
+                    minWidth: "auto",
+                    padding: "0",
+                    fontSize: "16px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  +
+                </Button>
               </TableBody>
             </Table>
           </TableContainer>
