@@ -39,6 +39,7 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import "../Styles/Home.css";
 import Checkbox from "@mui/material/Checkbox";
 import FormGroup from "@mui/material/FormGroup";
+import {MAX_WIDTH} from "../Constants/constants";
 
 const Home = () => {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -236,7 +237,7 @@ const Home = () => {
       );
 
     updatedPlanData[rowIndex]["Trim"] =
-      8700 - updatedPlanData[rowIndex]["Total width"];
+      MAX_WIDTH - updatedPlanData[rowIndex]["Total width"];
     setPlanData(updatedPlanData);
   };
 
