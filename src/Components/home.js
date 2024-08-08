@@ -740,6 +740,7 @@ const Home = () => {
               }}
             >
               <MenuItem value="knives">Knives</MenuItem>
+              <MenuItem value="hybrid">Hybrid</MenuItem>
               <MenuItem value="wastage">Wastage</MenuItem>
             </Select>
           </FormControl>
