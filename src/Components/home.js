@@ -39,7 +39,7 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import "../Styles/Home.css";
 import Checkbox from "@mui/material/Checkbox";
 import FormGroup from "@mui/material/FormGroup";
-import {MAX_WIDTH} from "../Constants/constants";
+import { MAX_WIDTH } from "../Constants/constants";
 
 const Home = () => {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -225,8 +225,10 @@ const Home = () => {
 
   const handleInputChange = (e, rowIndex, columnName) => {
     const updatedPlanData = [...planData];
+    const updatedMetricData = [...metricData];
     const newValue = e.target.value ? parseFloat(e.target.value) : 0;
     updatedPlanData[rowIndex][columnName] = newValue;
+
     updatedPlanData[rowIndex]["Total width"] = Object.keys(
       updatedPlanData[rowIndex]
     )
@@ -238,6 +240,27 @@ const Home = () => {
 
     updatedPlanData[rowIndex]["Trim"] =
       MAX_WIDTH - updatedPlanData[rowIndex]["Total width"];
+
+    updatedMetricData[0]["Total Trim"] = updatedPlanData.reduce((sum, row) => {
+      const trimValue = row["Trim"] || 0;
+      const setsValue = row["Sets"] || 1;
+      return sum + trimValue * setsValue;
+    }, 0);
+
+    updatedMetricData[0]["Knive Changes"] = updatedPlanData.length;
+
+    updatedMetricData[0]["Trim Percent"] = (
+      (updatedMetricData[0]["Total Trim"] /
+        (MAX_WIDTH * updatedMetricData[0]["Knive Changes"])) *
+      100
+    ).toFixed(2);
+
+    updatedMetricData[0]["Total Sets"] = updatedPlanData.reduce((sum, row) => {
+      const setsValue = row["Sets"] || 1;
+      return sum + setsValue;
+    }, 0);
+
+    setMetricData(updatedMetricData);
     setPlanData(updatedPlanData);
   };
 
@@ -368,7 +391,11 @@ const Home = () => {
                   const targetMinusActual =
                     (row["TARGET ROLL"] || 0) - (row["ACTUAL ROLL"] || 0);
                   const rowStyle =
-                    targetMinusActual > 0 ? { backgroundColor: "#f0f4c3" } : {};
+                    targetMinusActual > 0 && row["Option"] === "MustMake"
+                      ? { backgroundColor: "#ffcccb" }
+                      : targetMinusActual > 0
+                      ? { backgroundColor: "#f0f4c3" }
+                      : {};
 
                   return (
                     <TableRow key={rowIndex} style={rowStyle}>
@@ -465,8 +492,8 @@ const Home = () => {
     if (!data || data.length === 0) return null;
 
     const additionalColumns = ["Total width", "Trim", "Sets"];
-    const numericalColumns = Object.keys(data[0]).filter((key) =>
-      /^\d+$/.test(key)
+    const numericalColumns = Object.keys(data[0]).filter(
+      (key) => /^\d+$/.test(key) && parseInt(key) > 0
     );
 
     const handleAddColumn = () => {
@@ -500,7 +527,7 @@ const Home = () => {
       ];
 
       const newRow = columns.reduce((acc, column) => {
-        acc[column] = "";
+        acc[column] = column === "Sets" ? 1 : "";
         return acc;
       }, {});
 
